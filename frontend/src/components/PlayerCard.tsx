@@ -29,7 +29,9 @@ const PlayerCard = ({ data, isHost, score }: PlayerCardType) => {
         )}
       </div>
       <div className="flex-1">
-        <h3 className="text-teal-600 font-semibold text-lg">{data.name}</h3>
+        <h3 className="text-teal-600 font-semibold text-lg">
+          {(data && data.name) || ""}
+        </h3>
         <p className="text-gray-600 text-sm">{score} Points</p>
       </div>
     </div>
