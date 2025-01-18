@@ -521,7 +521,7 @@ const Game = () => {
 
                   const { error } = await supabase
                     .from("art_round_guesses")
-                    .insert({
+                    .upsert({
                       round_id: currentRound,
                       user_id: userID,
                       guess: guess.trim()
