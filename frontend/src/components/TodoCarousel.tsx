@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -5,8 +6,11 @@ import {
   CarouselPrevious,
   CarouselNext,
 } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 const TodoCarousel = () => {
+  const plugin = useRef(Autoplay({ delay: 2000, stopOnInteraction: false }));
+
   const slides = [
     {
       gif: "https://skribbl.io/img/tutorial/step1.gif",
@@ -37,7 +41,12 @@ const TodoCarousel = () => {
   ];
 
   return (
-    <Carousel className="w-[calc(100%-6rem)]">
+    <Carousel
+      className="w-[calc(100%-6rem)]"
+      plugins={[plugin.current]}
+      onMouseEnter={plugin.current.stop}
+      onMouseLeave={plugin.current.reset}
+    >
       <CarouselContent>
         {slides.map((slide, index) => (
           <CarouselItem
@@ -55,8 +64,6 @@ const TodoCarousel = () => {
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="text-gray-800 hover:text-gray-600" />
-      <CarouselNext className="text-gray-800 hover:text-gray-600" />
     </Carousel>
   );
 };
