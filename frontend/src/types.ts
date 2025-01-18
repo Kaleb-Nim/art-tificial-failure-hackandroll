@@ -21,3 +21,12 @@ export type RoomType = {
   created_at: string;
   is_active: boolean;
 };
+
+export type RoundType = {
+  id: number;
+  room_id: string;
+  topic_id: number;
+  drawer_id: string;
+  created_at: string;
+  winner_id: string;
+};

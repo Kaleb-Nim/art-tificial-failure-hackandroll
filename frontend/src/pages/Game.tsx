@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import supabase from "@/lib/supabase";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { UserRoomType, RoomType } from "@/types";
+import { UserRoomType, RoomType, RoundType } from "@/types";
 import {
   ReactSketchCanvas,
   ReactSketchCanvasRef,
@@ -38,6 +38,7 @@ const Game = () => {
   const [roomData, setRoomData] = useState<RoomType>();
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [dialogContent, setDialogContent] = useState<ReactNode>();
+  const [currentRound, setCurrentRound] = useState<number>();
 
   async function getUserInfo(user_id: string) {
     const { data, error } = await supabase
@@ -91,6 +92,18 @@ const Game = () => {
             schema: "public",
             table: "art_rooms",
             filter: `room_id=eq.${room_id}`,
+          },
+          (payload) => {
+            console.log("Change received!", payload);
+            setGameStart(payload.new["is_active"]);
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "art_draw_strokes",
           },
           (payload) => {
             console.log("Change received!", payload);
@@ -266,15 +279,18 @@ const Game = () => {
   }
 
   async function addRound(user_id: string, topic_id: number) {
-    const { error } = await supabase.from("art_rounds").insert({
-      room_id: room_id,
-      topic_id: topic_id,
-      drawer_id: user_id,
-    });
+    const { data, error } = await supabase
+      .from("art_rounds")
+      .insert({
+        room_id: room_id,
+        topic_id: topic_id,
+        drawer_id: user_id,
+      })
+      .select();
     if (error) {
       console.log(error);
     }
-    return;
+    setCurrentRound((data as RoundType[])[0].id);
   }
 
   async function updateGameState() {
