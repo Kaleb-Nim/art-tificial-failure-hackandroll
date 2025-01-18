@@ -188,18 +188,10 @@ const Game = () => {
           const newState = newChannel.presenceState();
           console.log("sync", newState);
 
-          // Create an array of promises for fetching user data and updating players
-          const userPromises = [...new Set(Object.keys(newState))].map(
-            async (id) => {
-              const data = await getUserInfo(id);
-              console.log(data);
-              return data;
-            }
-          );
-
-          // Wait for all promises to resolve and update the players state
-          Promise.all(userPromises).then((userData) => {
-            setPlayers((prev) => [...prev, ...userData]);
+          [...new Set(Object.keys(newState))].forEach(async (id) => {
+            const data = await getUserInfo(id);
+            console.log(data);
+            setPlayers((prev) => [...prev, data]);
           });
         })
         .on("presence", { event: "join" }, async ({ key, newPresences }) => {
@@ -212,7 +204,7 @@ const Game = () => {
         .on("presence", { event: "leave" }, async ({ key, leftPresences }) => {
           console.log("leave", key, leftPresences);
           await activatePlayer(key, false);
-          if (roomData && key == roomData["host_id"] && false) {
+          if (roomData && key == roomData["host_id"]) {
             console.log("Change Host", roomData, key);
             await changeHost();
           }
@@ -542,7 +534,7 @@ const Game = () => {
   };
 
   return (
-    <div className="flex p-12 h-full">
+    <div className="flex p-12 h-full items-center justify-center bg-white">
       {/* <Timer /> */}
       <div className="flex flex-col gap-5">
         {players.map((e: UserRoomType) => {
