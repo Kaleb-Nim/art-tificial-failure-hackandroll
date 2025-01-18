@@ -4,12 +4,10 @@ import { v4 as uuidv4 } from "uuid";
 import supabase from "@/lib/supabase";
 import Logo from "@/assets/Logo.png";
 
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import logo from "@/assets/Logo.png";
 import { Card } from "@/components/ui/card";
 
 import TodoCarousel from "@/components/TodoCarousel";
@@ -126,16 +124,16 @@ export default function Home() {
   };
 
   return (
-    <div className="w-full flex justify-center mt-20 mb-6">
-      <div className="flex flex-col items-center w-3/5">
+    <div className="w-full flex justify-center h-full md:items-center p-5">
+      <div className="flex flex-col items-center md:w-3/5">
         {/* Logo */}
-        <img className="h-44 mb-6" src={Logo} alt="Logo" />
+        <img className="h-32 md:mb-6 object-contain" src={Logo} alt="Logo" />
         {/* Card */}
         <Card className="p-6 w-full">
           {/* Outer Grid */}
           <div className="grid grid-cols-2 gap-4">
             {/* Column 1 */}
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-4 col-span-2 md:col-span-1">
               <Input
                 placeholder="Enter your name..."
                 onChange={(e) => {
@@ -164,7 +162,7 @@ export default function Home() {
             </div>
 
             {/* Column 2 */}
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex-col items-center gap-4 hidden md:flex">
               <TodoCarousel />
             </div>
           </div>

@@ -6,17 +6,18 @@ import supabase from "@/lib/supabase";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { UserRoomType, RoomType } from "@/types";
-import { ReactSketchCanvas } from "react-sketch-canvas";
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogDescription,
-//   DialogHeader,
-//   DialogTitle,
-//   DialogTrigger,
-// } from "@/components/ui/dialog";
+import { ReactSketchCanvas, ReactSketchCanvasRef } from "react-sketch-canvas";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const Game = () => {
+  const canvasRef = useRef<ReactSketchCanvasRef>(null);
   const channelRef = useRef<RealtimeChannel | undefined>(undefined);
   const updateChannelRef = () => {
     channelRef.current = channel;
@@ -32,6 +33,7 @@ const Game = () => {
   const [isDrawer, setIsDrawer] = useState<boolean>(false);
   const [players, setPlayers] = useState<UserRoomType[]>([]);
   const [roomData, setRoomData] = useState<RoomType>();
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   async function getUserInfo(user_id: string) {
     const { data, error } = await supabase
@@ -151,6 +153,7 @@ const Game = () => {
     if (roomData && userID == roomData["host_id"]) {
       setIsDrawer(true);
     }
+    setOpenDialog(true);
     await addRound(roomData ? roomData["host_id"] : "", 1);
   }
 
@@ -259,18 +262,25 @@ const Game = () => {
           );
         })}
       </div>
-      {/* <div className="flex flex-1 gap-4">
-        <PlayerList />
-        {userID} {name} {isHost} {gameStart}
-      </div> */}
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you absolutely sure?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete your
+              account and remove your data from our servers.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
       {!gameStart && (
         <Button onClick={startGame} disabled={!isHost}>
           Start Game
         </Button>
       )}
-
       {gameStart && (
         <ReactSketchCanvas
+          ref={canvasRef}
           className={!isDrawer ? "pointer-events-none" : ""}
         ></ReactSketchCanvas>
       )}

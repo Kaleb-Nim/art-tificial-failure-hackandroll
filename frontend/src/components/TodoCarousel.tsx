@@ -38,14 +38,17 @@ const TodoCarousel = () => {
   ];
 
   return (
-    <Carousel className="w-full max-w-2xl mx-auto">
+    <Carousel className="w-[calc(100%-6rem)]">
       <CarouselContent>
         {slides.map((slide, index) => (
-          <CarouselItem key={index} className="flex flex-col items-center p-4">
+          <CarouselItem
+            key={index}
+            className="flex flex-col items-center p-4 mx-auto"
+          >
             <img
               src={slide.gif}
               alt={`Step ${index + 1}`}
-              className="w-full h-auto rounded-lg shadow-md mb-4 bg-black"
+              className="w-full h-auto rounded-lg shadow-md mb-4 bg-black invert"
             />
             <p className="text-center font-medium text-gray-800">
               {slide.pointer}
