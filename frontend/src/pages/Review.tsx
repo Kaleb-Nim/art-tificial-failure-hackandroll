@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { getDrawingUrl } from "@/lib/supabase";
 import Logo from "../assets/Logo.png";
 import { UserRoomType } from "@/types";
 import { RoomType } from "@/types";
@@ -14,6 +13,20 @@ import {
 import { Separator } from "@radix-ui/react-separator";
 import PlayerCard from "@/components/PlayerCard";
 import supabase from "@/lib/supabase";
+
+async function getDrawingUrl(roundId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .storage
+    .from('art')
+    .getPublicUrl(`round_${roundId}.png`);
+
+  if (error) {
+    console.error('Error fetching drawing:', error);
+    return null;
+  }
+  console.log(data);
+  return data.publicUrl;
+}
 
 const Review = () => {
   const [players, setPlayers] = useState<UserRoomType[]>([]);
