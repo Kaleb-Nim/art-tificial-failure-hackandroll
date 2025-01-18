@@ -386,7 +386,7 @@ const Game = () => {
 
       // Upload to Supabase storage
       const { data, error } = await supabase.storage
-        .from('drawings')
+        .from('art') // Hardcoded bucket name
         .upload(`round_${currentRound}.png`, blob, {
           contentType: 'image/png',
           upsert: true
