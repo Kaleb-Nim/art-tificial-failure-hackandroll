@@ -21,7 +21,7 @@ const Game = () => {
   const { room_id } = useParams();
   const [gameStart, setGameStart] = useState<boolean>(false);
   const [isHost, setIsHost] = useState<boolean>(false);
-  const [isDrawer, setIsDrawer] = useState<boolean>(false);
+  // const [isDrawer, setIsDrawer] = useState<boolean>(false);
   const [players, setPlayers] = useState<UserRoomType[]>([]);
   const [roomData, setRoomData] = useState<RoomType>();
 
@@ -207,7 +207,9 @@ const Game = () => {
         <PlayerList />
         {userID} {name} {isHost} {gameStart}
       </div> */}
-      <Button onClick={startGame}>Start Game</Button>
+      <Button onClick={startGame} disabled={!isHost}>
+        Start Game
+      </Button>
       {gameStart && <ReactSketchCanvas></ReactSketchCanvas>}
     </div>
   );
