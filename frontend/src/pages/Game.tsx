@@ -101,17 +101,21 @@ const Game = () => {
         .on(
           "postgres_changes",
           {
-            event: "UPDATE",
+            event: "INSERT",
             schema: "public",
             table: "art_draw_strokes",
           },
           (payload) => {
             console.log("Change received!", payload);
-            setGameStart(payload.new["is_active"]);
+            if (canvasRef.current) {
+              canvasRef.current?.eraseMode(payload.new["is_eraser"]);
+              canvasRef.current?.loadPaths([payload.new["stroke_path"]]);
+            }
           }
         )
         .on("broadcast", { event: "openDialog" }, (payload) => {
           setIsDrawer(userID == payload.payload["drawer_id"]);
+          setGameStart(true);
           setOpenDialog(true);
         })
         .on("broadcast", { event: "closeDialog" }, () => {
@@ -268,7 +272,7 @@ const Game = () => {
       return;
     }
     setGameStart(true);
-    await updateGameState();
+    await updateGameState(true);
     channel?.send({
       type: "broadcast",
       event: "openDialog",
@@ -293,10 +297,10 @@ const Game = () => {
     setCurrentRound((data as RoundType[])[0].id);
   }
 
-  async function updateGameState() {
+  async function updateGameState(is_active: boolean) {
     const { error } = await supabase
       .from("art_rooms")
-      .update({ is_active: true })
+      .update({ is_active: is_active })
       .eq("room_id", room_id);
     if (error) {
       console.log(error);
@@ -361,14 +365,22 @@ const Game = () => {
     if (JSON.stringify(uniquePlayers) !== JSON.stringify(players)) {
       setPlayers(uniquePlayers);
     }
+    if (players.length < 2) {
+      updateGameState(false);
+    }
   }, [players]);
 
-  const handleStrokeChange = (path: CanvasPath, isEraser: boolean) => {
-    console.log("hi", path, isEraser);
-    //! supabase insert
+  const handleStrokeChange = async (path: CanvasPath, isEraser: boolean) => {
+    const { error } = await supabase.from("art_draw_strokes").insert({
+      round_id: currentRound,
+      is_eraser: isEraser,
+      stroke_path: path,
+    });
 
-    // canvasRef.current?.eraseMode(isEraser);
-    // canvasRef.current?.loadPaths([path]);
+    if (error) {
+      console.log(error);
+      return;
+    }
   };
 
   return (
@@ -406,7 +418,8 @@ const Game = () => {
         <ReactSketchCanvas
           ref={canvasRef}
           className={!isDrawer ? "pointer-events-none" : ""}
-          onStroke={handleStrokeChange}
+          onStroke={(path, isEraser) => handleStrokeChange(path, isEraser)}
+          strokeColor="black"
         ></ReactSketchCanvas>
       )}
     </div>
