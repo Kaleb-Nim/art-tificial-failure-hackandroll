@@ -13,7 +13,7 @@ const PlayerCard = ({ data, isHost, score }: PlayerCardType) => {
   return (
     <div className="flex items-center gap-3">
       <div className="relative">
-        <div className="w-12 h-12 rounded-full bg-gray-300 border-2 border-gray-400 overflow-hidden relative">
+        <div className="w-14 h-14 rounded-full overflow-hidden relative">
           <img
             className="w-full h-full object-cover"
             src={data.character_img}
