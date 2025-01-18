@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import PlayerCard from "@/components/PlayerCard";
 
 const Review = () => {
-  const [canvasImage, setCanvasImage] = useState<string>(
+  const [canvasImage, _] = useState<string>(
     "https://images.pexels.com/photos/1193743/pexels-photo-1193743.jpeg?cs=srgb&fm=jpg"
   );
 
