@@ -16,7 +16,7 @@ const PlayerCard = ({ data, isHost, score }: PlayerCardType) => {
         <div className="w-14 h-14 rounded-full overflow-hidden relative">
           <img
             className="w-full h-full object-cover"
-            src={data.character_img}
+            src={(data && data.character_img) || ""}
             alt=""
           />
         </div>

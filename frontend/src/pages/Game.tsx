@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import Timer from "@/components/Timer";
 
 const Game = () => {
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
@@ -61,7 +62,7 @@ const Game = () => {
       console.log(error);
       return {};
     }
-
+    console.log(data, user_id, room_id);
     if (data.length == 0) {
       console.log("CMI");
       return {};
@@ -69,16 +70,63 @@ const Game = () => {
     return data[0];
   }
 
-  async function disablePlayer(user_id: string) {
+  async function activatePlayer(user_id: string, is_active: boolean) {
     const { error } = await supabase
       .from("art_room_users")
-      .update({ is_active: false })
+      .update({ is_active: is_active })
       .eq("user_id", user_id)
       .eq("room_id", room_id);
     if (error) {
       console.log(error);
     }
     return;
+  }
+
+  async function changeHost() {
+    console.log("hi CHANGE");
+    const { data, error } = await supabase
+      .from("art_room_users")
+      .select()
+      .eq("room_id", room_id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: true });
+    console.log(data, "fu");
+    if (error) {
+      console.log(error);
+      return;
+    }
+
+    if (data.length == 0 && room_id) {
+      await removeRoom(room_id);
+    } else {
+      await updateHost(data[0].user_id);
+      setIsHost(data[0].user_id == userID);
+    }
+    return;
+  }
+
+  async function updateHost(host_id: string) {
+    const { error } = await supabase
+      .from("art_rooms")
+      .update({
+        host_id: host_id,
+      })
+      .eq("room_id", room_id);
+    if (error) {
+      console.log(error);
+      return;
+    }
+  }
+
+  async function removeRoom(room_id: string) {
+    const { error } = await supabase
+      .from("art_rooms")
+      .delete()
+      .eq("room_id", room_id);
+    if (error) {
+      console.log(error);
+      return;
+    }
   }
 
   useEffect(() => {
@@ -139,18 +187,35 @@ const Game = () => {
         .on("presence", { event: "sync" }, () => {
           const newState = newChannel.presenceState();
           console.log("sync", newState);
-          [...new Set(Object.keys(newState))].forEach(async (id) => {
-            const data = await getUserInfo(id);
-            console.log(data);
-            setPlayers((prev) => [...prev, data]);
+
+          // Create an array of promises for fetching user data and updating players
+          const userPromises = [...new Set(Object.keys(newState))].map(
+            async (id) => {
+              const data = await getUserInfo(id);
+              console.log(data);
+              return data;
+            }
+          );
+
+          // Wait for all promises to resolve and update the players state
+          Promise.all(userPromises).then((userData) => {
+            setPlayers((prev) => [...prev, ...userData]);
           });
         })
         .on("presence", { event: "join" }, async ({ key, newPresences }) => {
           console.log("join", key, newPresences);
+          await activatePlayer(key, true);
+          const data = await getUserInfo(key);
+          console.log(data);
+          setPlayers((prev) => [...prev, data]);
         })
         .on("presence", { event: "leave" }, async ({ key, leftPresences }) => {
           console.log("leave", key, leftPresences);
-          disablePlayer(key);
+          await activatePlayer(key, false);
+          if (roomData && key == roomData["host_id"] && false) {
+            console.log("Change Host", roomData, key);
+            await changeHost();
+          }
           setPlayers((prev) =>
             prev.filter((e) => {
               return e.user_id != key;
@@ -354,7 +419,9 @@ const Game = () => {
       if (!user_id || !name) {
         navigate(`/?room_id=${room_id}`);
       }
-      setUserID(JSON.parse(user_id));
+      if (user_id) {
+        setUserID(JSON.parse(user_id));
+      }
     }
   }, []);
 
@@ -368,6 +435,7 @@ const Game = () => {
         return navigate(`/?room_id=${room_id}&toast=true`);
       }
       let roomData = await getRoomData(room_id);
+      console.log(roomData, "Room Data");
       setRoomData(roomData);
       if (roomData) {
         setGameStart(Boolean(roomData["is_active"]));
@@ -388,6 +456,7 @@ const Game = () => {
     if (players.length < 2) {
       updateGameState(false);
     }
+    console.log("HI PLAYERS");
   }, [players]);
 
   const predictDrawing = async (base64Image: string) => {
@@ -473,7 +542,8 @@ const Game = () => {
   };
 
   return (
-    <div className="flex p-12">
+    <div className="flex p-12 h-full">
+      {/* <Timer /> */}
       <div className="flex flex-col gap-5">
         {players.map((e: UserRoomType) => {
           const playerHost = roomData
