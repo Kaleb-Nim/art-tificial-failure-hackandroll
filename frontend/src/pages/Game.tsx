@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { IoSend } from "react-icons/io5";
+import { useTimer } from "react-timer-hook";
 
 const Game = () => {
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
@@ -31,7 +33,6 @@ const Game = () => {
   const [channel, setChannel] = useState<RealtimeChannel>();
 
   const navigate = useNavigate();
-
   const [userID, setUserID] = useState<string>("");
   const { room_id } = useParams();
   const [gameStart, setGameStart] = useState<boolean>(false);
@@ -41,7 +42,8 @@ const Game = () => {
   const [roomData, setRoomData] = useState<RoomType>();
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [dialogContent, setDialogContent] = useState<ReactNode>();
-  const [currentRound, setCurrentRound] = useState<number>();
+  const [currentRound, setCurrentRound] = useState<number>(0);
+  const [roundCounter, setRoundCounter] = useState<number>(0);
   const [guess, setGuess] = useState<string>("");
   const [guesses, setGuesses] = useState<
     Array<{
@@ -50,8 +52,29 @@ const Game = () => {
       userId: string;
     }>
   >([]);
+  const [topic, setTopic] = useState<string>("");
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const duration = 60;
+  const getExpiryTimestamp = () => {
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + duration);
+    return time;
+  };
+
+  const { seconds, restart } = useTimer({
+    expiryTimestamp: getExpiryTimestamp(),
+    onExpire: () => {
+      console.log("Timer expired");
+      saveCanvasToSupabase(true);
+    },
+    autoStart: false,
+  });
+
+  const handleRestart = () => {
+    restart(getExpiryTimestamp()); // Restart with a new expiryTimestamp
+  };
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -202,8 +225,13 @@ const Game = () => {
           setGameStart(true);
           setOpenDialog(true);
         })
-        .on("broadcast", { event: "closeDialog" }, () => {
+        .on("broadcast", { event: "closeDialog" }, async (payload) => {
           setOpenDialog(false);
+          setRoundCounter((prev) => prev + 1);
+          let topic = await getTopic(payload.payload["topic"] as number);
+          console.log(payload, "Close", topic);
+          setTopic((topic && topic[0]["name"]) || "");
+          handleRestart();
         })
         .on("broadcast", { event: "updateRound" }, (payload) => {
           setCurrentRound(payload.payload["round_id"]);
@@ -295,8 +323,20 @@ const Game = () => {
 
   async function handleAddRound(topic_id: number) {
     await addRound(roomData ? roomData["host_id"] : "", topic_id);
-    channel?.send({ type: "broadcast", event: "closeDialog" });
+    channel?.send({
+      type: "broadcast",
+      event: "closeDialog",
+      payload: {
+        topic: topic_id,
+      },
+    });
   }
+
+  useEffect(() => {
+    if (seconds <= 25) {
+      saveCanvasToSupabase(); // Call your function when there are 15 seconds left
+    }
+  }, [seconds]);
 
   useEffect(() => {
     async function getTopics(topicArr: number[]): Promise<void> {
@@ -509,7 +549,27 @@ const Game = () => {
     }
   };
 
-  const saveCanvasToSupabase = async () => {
+  async function addGuessData(
+    user_id: string,
+    guess: string,
+    confidence: number
+  ) {
+    try {
+      const { error } = await supabase.from("art_round_guesses").upsert({
+        round_id: currentRound,
+        user_id: user_id,
+        guess: guess.trim(),
+        confidence: confidence,
+      });
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const saveCanvasToSupabase = async (is_final: boolean = false) => {
     if (!canvasRef.current || !currentRound) {
       toast.error("No canvas or round data available");
       return;
@@ -520,8 +580,13 @@ const Game = () => {
       const imageData = await canvasRef.current.exportImage("png");
 
       // Get predictions first
-      await predictDrawing(imageData);
-
+      let predict = await predictDrawing(imageData);
+      console.log(predict);
+      let prediction = predict["results"][0]["predictions"][0];
+      addGuessData("1", prediction["label"], prediction["confidence"]);
+      if (!is_final) {
+        return predict;
+      }
       // Convert base64 to blob for storage
       const base64Response = await fetch(imageData);
       const blob = await base64Response.blob();
@@ -538,10 +603,10 @@ const Game = () => {
         throw error;
       }
 
-      toast.success("Drawing saved and analyzed successfully!");
+      // toast.success("Drawing saved and analyzed successfully!");
     } catch (error) {
       console.error("Error saving canvas:", error);
-      toast.error("Failed to save drawing");
+      // toast.error("Failed to save drawing");
     }
   };
 
@@ -559,118 +624,23 @@ const Game = () => {
   };
 
   return (
-    // <div className="flex p-12 h-full items-center justify-center">
-    //   {/* <Timer /> */}
-    //   <div className="flex flex-col gap-5">
-    //     {players.map((e: UserRoomType) => {
-    //       const playerHost = roomData
-    //         ? e.user_id == roomData["host_id"]
-    //         : false;
-    //       console.log(
-    //         e.user_id,
-    //         roomData && roomData["host_id"],
-    //         roomData ? e.user_id == roomData["host_id"] : false,
-    //         playerHost
-    //       );
-    //       return (
-    //         <PlayerCard
-    //           data={e.art_users}
-    //           key={"Player" + e.user_id}
-    //           isHost={playerHost}
-    //           score={e.score}
-    //         ></PlayerCard>
-    //       );
-    //     })}
-    //   </div>
-    //   <Dialog open={openDialog}>
-    //     <DialogContent>{dialogContent}</DialogContent>
-    //   </Dialog>
-    //   {!gameStart && (
-    //     <Button onClick={startGame} disabled={!isHost || players.length < 2}>
-    //       Start Game
-    //     </Button>
-    //   )}
-    //   {gameStart && (
-    //     <div className="flex flex-col gap-4">
-    //       <ReactSketchCanvas
-    //         ref={canvasRef}
-    //         className={!isDrawer ? "pointer-events-none" : ""}
-    //         onStroke={(path, isEraser) => handleStrokeChange(path, isEraser)}
-    //         strokeColor="black"
-    //       />
-    //       {isDrawer ? (
-    //         <Button onClick={saveCanvasToSupabase}>Save Drawing</Button>
-    //       ) : (
-    //         <form
-    //           onSubmit={async (e: FormEvent) => {
-    //             e.preventDefault();
-    //             if (guess.trim()) {
-    //               try {
-    //                 const { data: userData } = await supabase
-    //                   .from("art_users")
-    //                   .select("name")
-    //                   .eq("user_id", userID)
-    //                   .single();
-
-    //                 const { error } = await supabase
-    //                   .from("art_round_guesses")
-    //                   .upsert({
-    //                     round_id: currentRound,
-    //                     user_id: userID,
-    //                     guess: guess.trim(),
-    //                   });
-
-    //                 if (error) throw error;
-
-    //                 // Add guess to local state
-    //                 setGuesses((prev) => [
-    //                   ...prev,
-    //                   {
-    //                     userName: userData?.name || "Unknown",
-    //                     guess: guess.trim(),
-    //                     userId: userID,
-    //                   },
-    //                 ]);
-
-    //                 toast.success("Guess submitted!");
-    //                 setGuess("");
-    //               } catch (error) {
-    //                 console.error("Error submitting guess:", error);
-    //                 toast.error("Failed to submit guess");
-    //               }
-    //             }
-    //           }}
-    //           className="flex gap-2"
-    //         >
-    //           <Input
-    //             type="text"
-    //             placeholder="Enter your guess..."
-    //             value={guess}
-    //             onChange={(e) => setGuess(e.target.value)}
-    //             className="flex-1"
-    //           />
-    //           <Button type="submit">Submit Guess</Button>
-    //         </form>
-    //       )}
-    //       <div className="mt-4 space-y-2">
-    //         {guesses.map((g, index) => (
-    //           <Guesses
-    //             key={index}
-    //             userName={g.userName}
-    //             guess={g.guess}
-    //             isCurrentUser={g.userId === userID}
-    //           />
-    //         ))}
-    //       </div>
-    //     </div>
-    //   )}
-    // </div>
     <div className="flex flex-col h-full md:p-8 p-4">
       {/* Header */}
       <div className="h-16 bg-white text-black flex items-center justify-between px-6 md:mx-6 rounded-lg shadow">
-        <div className="text-lg font-semibold">Topic:</div>
-        <div className="text-lg font-bold">Sports</div>
-        <div className="text-xl font-bold text-red-500">35s</div>
+        <div className="text-lg font-semibold">
+          Round {roundCounter}/{players.length}
+        </div>
+        <div className="text-lg font-bold">
+          {isDrawer
+            ? topic
+            : topic
+                .split("")
+                .map((_) => "_")
+                .join(" ")}
+        </div>
+        <div className="text-xl font-bold text-red-500">
+          {seconds || duration}s
+        </div>
       </div>
 
       {/* Main Content */}
@@ -794,7 +764,9 @@ const Game = () => {
                 onChange={(e) => setGuess(e.target.value)}
                 className="flex-1"
               />
-              <Button type="submit">Submit</Button>
+              <Button type="submit" size="icon">
+                <IoSend />
+              </Button>
             </form>
           )}
         </div>
