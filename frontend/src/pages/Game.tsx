@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, ReactNode, FormEvent } from "react";
+import Guesses from "@/components/Guesses";
 import { Input } from "@/components/ui/input";
 import { useParams } from "react-router-dom";
 import PlayerCard from "@/components/PlayerCard";
@@ -507,6 +508,12 @@ const Game = () => {
               e.preventDefault();
               if (guess.trim()) {
                 try {
+                  const { data: userData } = await supabase
+                    .from("art_users")
+                    .select("name")
+                    .eq("user_id", userID)
+                    .single();
+
                   const { error } = await supabase
                     .from("art_round_guesses")
                     .insert({
@@ -516,6 +523,14 @@ const Game = () => {
                     });
                     
                   if (error) throw error;
+
+                  // Add guess to local state
+                  setGuesses(prev => [...prev, {
+                    userName: userData?.name || "Unknown",
+                    guess: guess.trim(),
+                    userId: userID
+                  }]);
+                  
                   toast.success("Guess submitted!");
                   setGuess("");
                 } catch (error) {
@@ -537,6 +552,16 @@ const Game = () => {
               </Button>
             </form>
           )}
+          <div className="mt-4 space-y-2">
+            {guesses.map((g, index) => (
+              <Guesses
+                key={index}
+                userName={g.userName}
+                guess={g.guess}
+                isCurrentUser={g.userId === userID}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>
