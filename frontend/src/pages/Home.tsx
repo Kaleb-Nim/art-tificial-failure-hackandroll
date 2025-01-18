@@ -16,7 +16,7 @@ import { type CarouselApi } from "@/components/ui/carousel";
 
 export default function Home() {
   const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useLocalStorageState("character_img", 0);
+  const [current, setCurrent] = useLocalStorageState("character_img", 1);
   useEffect(() => {
     if (!api) {
       return;
@@ -61,7 +61,7 @@ export default function Home() {
     }
 
     upsertUserData();
-  }, [userID, name]);
+  }, [userID, name, current]);
 
   async function checkRoomExist(room_id: string) {
     const { data, error } = await supabase
