@@ -65,7 +65,7 @@ export default function Home() {
     }
 
     if (!roomID) {
-      return toast.error("Missing Game ID");
+      return toast.error("Missing Room ID");
     }
 
     let checkExist = await checkRoomExist(roomID);
@@ -99,7 +99,7 @@ export default function Home() {
       return toast.error("Missing Name");
     }
     if (!roomID) {
-      return toast.error("Missing Game ID");
+      return toast.error("Missing Room ID");
     }
     let checkExist = await checkRoomExist(roomID);
     if (checkExist) {

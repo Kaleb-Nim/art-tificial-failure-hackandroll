@@ -6,7 +6,11 @@ import supabase from "@/lib/supabase";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { UserRoomType, RoomType } from "@/types";
-import { ReactSketchCanvas, ReactSketchCanvasRef } from "react-sketch-canvas";
+import {
+  ReactSketchCanvas,
+  ReactSketchCanvasRef,
+  CanvasPath,
+} from "react-sketch-canvas";
 import {
   Dialog,
   DialogContent,
@@ -343,6 +347,14 @@ const Game = () => {
     }
   }, [players]);
 
+  const handleStrokeChange = (path: CanvasPath, isEraser: boolean) => {
+    console.log("hi", path, isEraser);
+    //! supabase insert
+
+    // canvasRef.current?.eraseMode(isEraser);
+    // canvasRef.current?.loadPaths([path]);
+  };
+
   return (
     <div className="flex p-12">
       <div className="flex flex-col gap-5">
@@ -378,6 +390,7 @@ const Game = () => {
         <ReactSketchCanvas
           ref={canvasRef}
           className={!isDrawer ? "pointer-events-none" : ""}
+          onStroke={handleStrokeChange}
         ></ReactSketchCanvas>
       )}
     </div>
