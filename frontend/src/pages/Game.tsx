@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef, ReactNode } from "react";
+import { useEffect, useState, useRef, ReactNode, FormEvent } from "react";
+import { Input } from "@/components/ui/input";
 import { useParams } from "react-router-dom";
 import PlayerCard from "@/components/PlayerCard";
 import { useNavigate } from "react-router-dom";
@@ -39,6 +40,7 @@ const Game = () => {
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [dialogContent, setDialogContent] = useState<ReactNode>();
   const [currentRound, setCurrentRound] = useState<number>();
+  const [guess, setGuess] = useState<string>("");
 
   async function getUserInfo(user_id: string) {
     const { data, error } = await supabase
@@ -486,10 +488,32 @@ const Game = () => {
             onStroke={(path, isEraser) => handleStrokeChange(path, isEraser)}
             strokeColor="black"
           />
-          {isDrawer && (
+          {isDrawer ? (
             <Button onClick={saveCanvasToSupabase}>
               Save Drawing
             </Button>
+          ) : (
+            <form onSubmit={(e: FormEvent) => {
+              e.preventDefault();
+              if (guess.trim()) {
+                // TODO: Handle guess submission to backend
+                console.log("Submitted guess:", guess);
+                toast.success("Guess submitted!");
+                setGuess("");
+              }
+            }}
+            className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="Enter your guess..."
+                value={guess}
+                onChange={(e) => setGuess(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit">
+                Submit Guess
+              </Button>
+            </form>
           )}
         </div>
       )}
