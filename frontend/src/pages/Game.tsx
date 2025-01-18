@@ -70,6 +70,23 @@ const Game = () => {
     return data[0];
   }
 
+  useEffect(() => {
+    addUser();
+    async function addUser() {
+      const { error } = await supabase.from("art_room_users").upsert({
+        room_id: room_id,
+        user_id: userID,
+        score: 0,
+        is_active: true,
+      });
+      if (error) {
+        console.log(error);
+        return false;
+      }
+      return true;
+    }
+  }, [userID]);
+
   async function activatePlayer(user_id: string, is_active: boolean) {
     const { error } = await supabase
       .from("art_room_users")
