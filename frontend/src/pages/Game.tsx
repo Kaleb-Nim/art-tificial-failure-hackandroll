@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, ReactNode } from "react";
+import { useEffect, useState, useRef, ReactNode, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import PlayerCard from "@/components/PlayerCard";
 import { useNavigate } from "react-router-dom";
@@ -370,6 +370,39 @@ const Game = () => {
     }
   }, [players]);
 
+  const saveCanvasToSupabase = async () => {
+    if (!canvasRef.current || !currentRound) {
+      toast.error("No canvas or round data available");
+      return;
+    }
+
+    try {
+      // Get the canvas image as base64
+      const imageData = await canvasRef.current.exportImage("png");
+      
+      // Convert base64 to blob
+      const base64Response = await fetch(imageData);
+      const blob = await base64Response.blob();
+
+      // Upload to Supabase storage
+      const { data, error } = await supabase.storage
+        .from('drawings')
+        .upload(`round_${currentRound}.png`, blob, {
+          contentType: 'image/png',
+          upsert: true
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Drawing saved successfully!');
+    } catch (error) {
+      console.error('Error saving canvas:', error);
+      toast.error('Failed to save drawing');
+    }
+  };
+
   const handleStrokeChange = async (path: CanvasPath, isEraser: boolean) => {
     const { error } = await supabase.from("art_draw_strokes").insert({
       round_id: currentRound,
@@ -415,12 +448,19 @@ const Game = () => {
         </Button>
       )}
       {gameStart && (
-        <ReactSketchCanvas
-          ref={canvasRef}
-          className={!isDrawer ? "pointer-events-none" : ""}
-          onStroke={(path, isEraser) => handleStrokeChange(path, isEraser)}
-          strokeColor="black"
-        ></ReactSketchCanvas>
+        <div className="flex flex-col gap-4">
+          <ReactSketchCanvas
+            ref={canvasRef}
+            className={!isDrawer ? "pointer-events-none" : ""}
+            onStroke={(path, isEraser) => handleStrokeChange(path, isEraser)}
+            strokeColor="black"
+          />
+          {isDrawer && (
+            <Button onClick={saveCanvasToSupabase}>
+              Save Drawing
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );
