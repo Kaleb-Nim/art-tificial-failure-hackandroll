@@ -3,6 +3,11 @@ import Logo from "../assets/Logo.png";
 import { UserRoomType } from "@/types";
 import { RoomType } from "@/types";
 
+type AIPrediction = {
+  guess: string;
+  confidence: number;
+};
+
 import {
   Card,
   CardHeader,
@@ -33,16 +38,37 @@ const Review = () => {
   const [roomData, setRoomData] = useState<RoomType>();
 
   const [canvasImage, setCanvasImage] = useState<string>("");
+  const [aiPrediction, setAiPrediction] = useState<AIPrediction>({ guess: "", confidence: 0 });
 
   useEffect(() => {
-    async function fetchDrawing() {
+    async function fetchData() {
       // Hard coded round_id for testing
-      const imageUrl = await getDrawingUrl("124");
+      const roundId = "124";
+      
+      // Fetch drawing
+      const imageUrl = await getDrawingUrl(roundId);
       if (imageUrl) {
         setCanvasImage(imageUrl);
       }
+
+      // Fetch AI prediction
+      const { data, error } = await supabase
+        .from("art_round_guesses")
+        .select("guess, confidence")
+        .eq("round_id", roundId)
+        .eq("user_id", "1")
+        .single();
+
+      if (error) {
+        console.error('Error fetching AI prediction:', error);
+      } else if (data) {
+        setAiPrediction({
+          guess: data.guess,
+          confidence: data.confidence
+        });
+      }
     }
-    fetchDrawing();
+    fetchData();
   }, []);
 
   async function getRoomData(room_id: string) {
@@ -183,8 +209,8 @@ const Review = () => {
             <div className="w-1/4 p-4">
               <h2 className="text-lg font-semibold mb-2">AI Predictions</h2>
               <div>
-                <p className="font-semibold text-xl">BOMB</p>
-                <p>Confidence Score: 0.9</p>
+                <p className="font-semibold text-xl">{aiPrediction.guess}</p>
+                <p>Confidence Score: {aiPrediction.confidence.toFixed(2)}</p>
               </div>
             </div>
           </div>
