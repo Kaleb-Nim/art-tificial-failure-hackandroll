@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getDrawingUrl } from "@/lib/supabase";
 import Logo from "../assets/Logo.png";
 import { UserRoomType } from "@/types";
 import { RoomType } from "@/types";
@@ -18,9 +19,18 @@ const Review = () => {
   const [players, setPlayers] = useState<UserRoomType[]>([]);
   const [roomData, setRoomData] = useState<RoomType>();
 
-  const [canvasImage, _] = useState<string>(
-    "https://images.pexels.com/photos/1193743/pexels-photo-1193743.jpeg?cs=srgb&fm=jpg"
-  );
+  const [canvasImage, setCanvasImage] = useState<string>("");
+
+  useEffect(() => {
+    async function fetchDrawing() {
+      // Hard coded round_id for testing
+      const imageUrl = await getDrawingUrl("124");
+      if (imageUrl) {
+        setCanvasImage(imageUrl);
+      }
+    }
+    fetchDrawing();
+  }, []);
 
   async function getRoomData(room_id: string) {
     const { data, error } = await supabase
