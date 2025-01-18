@@ -530,7 +530,7 @@ const Game = () => {
   };
 
   return (
-    <div className="flex p-12 h-full items-center justify-center bg-white">
+    <div className="flex p-12 h-full items-center justify-center">
       {/* <Timer /> */}
       <div className="flex flex-col gap-5">
         {players.map((e: UserRoomType) => {

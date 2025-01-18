@@ -9,7 +9,7 @@ type PlayerCardType = {
   score: number;
 };
 
-const PlayerCard = ({ data, isHost, score }: PlayerCardType) => {
+const PlayerCard = ({ data, isHost = false, score = 0 }: PlayerCardType) => {
   return (
     <div className="flex items-center gap-3">
       <div className="relative">
