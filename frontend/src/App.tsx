@@ -10,7 +10,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route path="/" element={<Home />} />
-        <Route path="/:game_id" element={<Game />} />
+        <Route path="/:room_id" element={<Game />} />
         {/* 404 ERROR */}
         <Route path="/*" element={<Error />} />
       </Route>
