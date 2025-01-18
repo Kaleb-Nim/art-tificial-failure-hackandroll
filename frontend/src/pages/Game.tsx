@@ -493,13 +493,25 @@ const Game = () => {
               Save Drawing
             </Button>
           ) : (
-            <form onSubmit={(e: FormEvent) => {
+            <form onSubmit={async (e: FormEvent) => {
               e.preventDefault();
               if (guess.trim()) {
-                // TODO: Handle guess submission to backend
-                console.log("Submitted guess:", guess);
-                toast.success("Guess submitted!");
-                setGuess("");
+                try {
+                  const { error } = await supabase
+                    .from("art_round_guesses")
+                    .insert({
+                      round_id: currentRound,
+                      user_id: userID,
+                      guess: guess.trim()
+                    });
+                    
+                  if (error) throw error;
+                  toast.success("Guess submitted!");
+                  setGuess("");
+                } catch (error) {
+                  console.error("Error submitting guess:", error);
+                  toast.error("Failed to submit guess");
+                }
               }
             }}
             className="flex gap-2">
