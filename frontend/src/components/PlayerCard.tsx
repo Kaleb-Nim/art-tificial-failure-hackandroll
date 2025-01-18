@@ -1,33 +1,49 @@
-import React from "react";
-import Avatar from "../assets/Avatar.png";
-import { Separator } from "./ui/separator";
-import { X, Check } from "lucide-react";
+// import Avatar from "../assets/Avatar.png";
+// import { Separator } from "./ui/separator";
+// import { X, Check } from "lucide-react";
+import { UserType } from "@/types";
 
-const PlayerCard = () => {
+type PlayerCardType = {
+  data: UserType;
+  isHost: boolean;
+  score: number;
+};
+
+const PlayerCard = ({ data, isHost, score }: PlayerCardType) => {
   return (
-    <div className="flex items-center gap-3 p-2 bg-gray-100 rounded-lg relative">
-      {/* Avatar image */}
+    <div className="flex items-center gap-3">
       <div className="relative">
-        <div className="w-12 h-12 rounded-full bg-gray-300 border-2 border-gray-400 overflow-hidden">
-          <img className="w-full h-full object-cover" src={Avatar} alt="" />
+        <div className="w-12 h-12 rounded-full bg-gray-300 border-2 border-gray-400 overflow-hidden relative">
+          <img
+            className="w-full h-full object-cover"
+            src={data.character_img}
+            alt=""
+          />
         </div>
+        {isHost && (
+          <img
+            className="w-[30px] aspect-square absolute -top-[calc(3.5rem+30px)] left-1/2 -translate-x-1/2"
+            src={"https://cdn-icons-png.flaticon.com/512/1586/1586967.png"}
+            alt=""
+          />
+        )}
       </div>
-
       <div className="flex-1">
-        <h3 className="text-teal-600 font-semibold text-lg">Thaddy</h3>
-        <p className="text-gray-600 text-sm">0 Points</p>
+        <h3 className="text-teal-600 font-semibold text-lg">{data.name}</h3>
+        <p className="text-gray-600 text-sm">{score} Points</p>
       </div>
-
-      <Separator orientation="vertical" className="my-2">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-700 text-sm">Hack and Roll 2025</span>
-          <div className="flex gap-1">
-            <Check className="w-4 h-4 text-green-500" />
-            <X className="w-4 h-4 text-red-500" />
-          </div>
-        </div>
-      </Separator>
     </div>
+
+    //   <Separator orientation="vertical" className="my-2">
+    //     <div className="flex items-center gap-2">
+    //       <span className="text-gray-700 text-sm">Hack and Roll 2025</span>
+    //       <div className="flex gap-1">
+    //         <Check className="w-4 h-4 text-green-500" />
+    //         <X className="w-4 h-4 text-red-500" />
+    //       </div>
+    //     </div>
+    //   </Separator>
+    // </div>
   );
 };
 

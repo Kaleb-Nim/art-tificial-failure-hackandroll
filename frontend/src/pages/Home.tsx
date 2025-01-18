@@ -25,7 +25,7 @@ export default function Home() {
 
   useEffect(() => {
     if (noRoomError) {
-      toast.error("Room does not exist!");
+      toast.warning("Room does not exist!");
     }
   }, [noRoomError]);
 
