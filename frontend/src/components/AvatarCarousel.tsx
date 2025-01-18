@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Carousel,
   CarouselContent,
@@ -38,28 +37,25 @@ const AvatarCarousel = () => {
   ];
 
   return (
-    <Carousel className="w-[calc(100%-6rem)]">
-      <Carousel className="w-full max-w-2xl mx-auto">
-        <CarouselContent>
-          {carouselSlides.map((slide, index) => (
-            <CarouselItem
-              key={index}
-              className="flex flex-col items-center p-4"
-            >
-              <img
-                src={slide.avatar}
-                alt={`Avatar ${index + 1}`}
-                className="w-full h-auto rounded-lg shadow-md mb-4 aspect-square object-contain"
-              />
-              <p className="text-center font-medium text-gray-800">
-                {slide.pointer}
-              </p>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious className="text-gray-800 hover:text-gray-600" />
-        <CarouselNext className="text-gray-800 hover:text-gray-600 " />
-      </Carousel>
+    <Carousel
+      className="w-[calc(100%-6rem)]"
+      opts={{
+        loop: true,
+      }}
+    >
+      <CarouselContent>
+        {carouselSlides.map((slide, index) => (
+          <CarouselItem key={index} className="flex flex-col items-center">
+            <img
+              src={slide.avatar}
+              alt={`Avatar ${index + 1}`}
+              className="w-full h-auto rounded-lg shadow-md mb-4 aspect-square object-contain"
+            />
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious className="text-gray-800 hover:text-gray-600" />
+      <CarouselNext className="text-gray-800 hover:text-gray-600 " />
     </Carousel>
   );
 };

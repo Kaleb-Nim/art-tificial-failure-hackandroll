@@ -145,24 +145,27 @@ export default function Home() {
                 placeholder="Enter Room ID..."
                 onChange={(e) => setRoomID(e.target.value)}
               />
-              <Button
-                variant="default"
-                className="bg-blue-600 text-white w-4/5"
-                onClick={handleEnterLobby}
-              >
-                Join Room
-              </Button>
-              <Button
-                variant="default"
-                className="bg-red-500 text-white w-4/5"
-                onClick={handleCreateLobby}
-              >
-                Create Room
-              </Button>
+              <div className="flex gap-2 md:flex-col justify-center items-center w-full">
+                <Button
+                  variant="default"
+                  className="bg-blue-600 text-white w-4/5"
+                  onClick={handleEnterLobby}
+                >
+                  Join Room
+                </Button>
+                <Button
+                  variant="default"
+                  className="bg-red-500 text-white w-4/5"
+                  onClick={handleCreateLobby}
+                >
+                  Create Room
+                </Button>
+              </div>
             </div>
 
             {/* Column 2 */}
-            <div className="flex-col items-center gap-4 hidden md:flex">
+            <div className="flex-col items-center gap-4 hidden md:flex justify-center">
+              <h2 className="text-xl font-bold underline">How To Play</h2>
               <TodoCarousel />
             </div>
           </div>

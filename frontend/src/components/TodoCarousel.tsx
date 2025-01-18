@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -27,12 +26,12 @@ const TodoCarousel = () => {
       pointer: "Guessers have to guess what the Artist draws to score points.",
     },
     {
-      gif: "https://skribbl.io/img/tutorial/step5.gif",
+      gif: "https://skribbl.io/img/tutorial/step3.gif",
       pointer:
         "If the AI is able to correctly guess what's being drawn, everyone loses!",
     },
     {
-      gif: "https://skribbl.io/img/tutorial/step6.gif",
+      gif: "https://skribbl.io/img/tutorial/step5.gif",
       pointer: "After all rounds, the player with the most points wins!",
     },
   ];
@@ -43,14 +42,14 @@ const TodoCarousel = () => {
         {slides.map((slide, index) => (
           <CarouselItem
             key={index}
-            className="flex flex-col items-center p-4 mx-auto"
+            className="flex flex-col items-center mx-auto"
           >
             <img
               src={slide.gif}
               alt={`Step ${index + 1}`}
               className="w-full h-auto rounded-lg shadow-md mb-4 bg-black invert"
             />
-            <p className="text-center font-medium text-gray-800">
+            <p className="text-left font-medium text-gray-800">
               {slide.pointer}
             </p>
           </CarouselItem>
