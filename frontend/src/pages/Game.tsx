@@ -122,6 +122,9 @@ const Game = () => {
         })
         .on("broadcast", { event: "closeDialog" }, () => {
           setOpenDialog(false);
+        })
+        .on("broadcast", { event: "updateRound" }, (payload) => {
+          setCurrentRound(payload.payload["round_id"]);
         });
 
       newChannel
@@ -297,6 +300,13 @@ const Game = () => {
       console.log(error);
     }
     setCurrentRound((data as RoundType[])[0].id);
+    channel?.send({
+      type: "broadcast",
+      event: "updateRound",
+      payload: {
+        round_id: (data as RoundType[])[0].id,
+      },
+    });
   }
 
   async function updateGameState(is_active: boolean) {

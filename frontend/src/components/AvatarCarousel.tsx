@@ -6,32 +6,31 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 
-import Avatar_1 from "../assets/Avatar_1.png";
-import Avatar_2 from "../assets/Avatar_2.png";
-import Avatar_3 from "../assets/Avatar_3.png";
-import Avatar_4 from "../assets/Avatar_4.png";
-import Avatar_5 from "../assets/Avatar_5.png";
+type CarouselProps = {
+  setApi: (api: any) => void;
+  startIndex: number;
+};
 
-const AvatarCarousel = () => {
+const AvatarCarousel = ({ setApi, startIndex }: CarouselProps) => {
   const carouselSlides = [
     {
-      avatar: Avatar_1,
+      avatar: "./1.png",
       pointer: "Avatar 1",
     },
     {
-      avatar: Avatar_2,
+      avatar: "./2.png",
       pointer: "Avatar 2",
     },
     {
-      avatar: Avatar_3,
+      avatar: "./3.png",
       pointer: "Avatar 3",
     },
     {
-      avatar: Avatar_4,
+      avatar: "./4.png",
       pointer: "Avatar 4",
     },
     {
-      avatar: Avatar_5,
+      avatar: "./5.png",
       pointer: "Avatar 5",
     },
   ];
@@ -41,7 +40,9 @@ const AvatarCarousel = () => {
       className="w-[calc(100%-6rem)]"
       opts={{
         loop: true,
+        startIndex: startIndex,
       }}
+      setApi={setApi}
     >
       <CarouselContent>
         {carouselSlides.map((slide, index) => (
@@ -49,7 +50,7 @@ const AvatarCarousel = () => {
             <img
               src={slide.avatar}
               alt={`Avatar ${index + 1}`}
-              className="w-full h-auto rounded-lg shadow-md mb-4 aspect-square object-contain"
+              className="w-full h-auto max-h-44 rounded-lg mb-4 aspect-square object-contain"
             />
           </CarouselItem>
         ))}
