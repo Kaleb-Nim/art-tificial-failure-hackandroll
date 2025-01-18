@@ -6,6 +6,7 @@ import supabase from "@/lib/supabase";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { UserRoomType, RoomType } from "@/types";
+import { ReactSketchCanvas } from "react-sketch-canvas";
 
 const Game = () => {
   const channelRef = useRef<RealtimeChannel | undefined>(undefined);
@@ -152,10 +153,10 @@ const Game = () => {
     if (typeof window !== "undefined") {
       let user_id = localStorage.getItem("user_id") || "";
       let name = localStorage.getItem("name") || "";
-      setUserID(JSON.parse(user_id));
       if (!user_id || !name) {
         navigate(`/?room_id=${room_id}`);
       }
+      setUserID(JSON.parse(user_id));
     }
   }, []);
 
@@ -170,13 +171,19 @@ const Game = () => {
       }
       let roomData = await getRoomData(room_id);
       setRoomData(roomData);
-      if (roomData.length > 0) {
+      if (roomData) {
         setGameStart(Boolean(roomData["is_active"]));
+        console.log(
+          userID == roomData["host_id"],
+          userID,
+          roomData["host_id"],
+          "hi"
+        );
         setIsHost(userID == roomData["host_id"]);
       }
     }
     initGame();
-  }, [room_id]);
+  }, [userID, room_id]);
 
   useEffect(() => {
     const uniquePlayers = [
@@ -189,14 +196,23 @@ const Game = () => {
   }, [players]);
 
   return (
-    <div className="flex p-4">
+    <div className="flex p-12">
       <div className="flex flex-col gap-5">
         {players.map((e: UserRoomType) => {
+          const playerHost = roomData
+            ? e.user_id == roomData["host_id"]
+            : false;
+          console.log(
+            e.user_id,
+            roomData && roomData["host_id"],
+            roomData ? e.user_id == roomData["host_id"] : false,
+            playerHost
+          );
           return (
             <PlayerCard
               data={e.art_users}
               key={"Player" + e.user_id}
-              isHost={(roomData && e.user_id == roomData["host_id"]) || false}
+              isHost={playerHost}
               score={e.score}
             ></PlayerCard>
           );
@@ -206,9 +222,11 @@ const Game = () => {
         <PlayerList />
         {userID} {name} {isHost} {gameStart}
       </div> */}
-      <Button onClick={startGame} disabled={!isHost}>
-        Start Game
-      </Button>
+      {!gameStart && (
+        <Button onClick={startGame} disabled={!isHost}>
+          Start Game
+        </Button>
+      )}
       {gameStart && <ReactSketchCanvas></ReactSketchCanvas>}
     </div>
   );

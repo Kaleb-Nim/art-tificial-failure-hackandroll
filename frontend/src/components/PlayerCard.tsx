@@ -22,7 +22,7 @@ const PlayerCard = ({ data, isHost, score }: PlayerCardType) => {
         </div>
         {isHost && (
           <img
-            className="w-[30px] aspect-square absolute -top-[calc(3.5rem+30px)] left-1/2 -translate-x-1/2"
+            className="absolute w-[30px] aspect-square left-1/2 -translate-x-1/2 -top-[20px]"
             src={"https://cdn-icons-png.flaticon.com/512/1586/1586967.png"}
             alt=""
           />
