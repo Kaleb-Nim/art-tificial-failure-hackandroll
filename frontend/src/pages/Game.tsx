@@ -6,7 +6,15 @@ import supabase from "@/lib/supabase";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { UserRoomType, RoomType } from "@/types";
-// import { ReactSketchCanvas } from "react-sketch-canvas";
+import { ReactSketchCanvas } from "react-sketch-canvas";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogDescription,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogTrigger,
+// } from "@/components/ui/dialog";
 
 const Game = () => {
   const channelRef = useRef<RealtimeChannel | undefined>(undefined);
@@ -21,7 +29,7 @@ const Game = () => {
   const { room_id } = useParams();
   const [gameStart, setGameStart] = useState<boolean>(false);
   const [isHost, setIsHost] = useState<boolean>(false);
-  // const [isDrawer, setIsDrawer] = useState<boolean>(false);
+  const [isDrawer, setIsDrawer] = useState<boolean>(false);
   const [players, setPlayers] = useState<UserRoomType[]>([]);
   const [roomData, setRoomData] = useState<RoomType>();
 
@@ -117,17 +125,56 @@ const Game = () => {
     return data.length != 0;
   }
 
+  async function getTopic(topic_id: number) {
+    const { data, error } = await supabase
+      .from("art_topics")
+      .select()
+      .eq("topic_id", topic_id);
+    if (error) {
+      console.log(error);
+      return [];
+    }
+    if (data.length == 0) {
+      return [];
+    }
+    return data;
+  }
+
+  async function getRandomTopic() {}
+
   async function startGame() {
-    //! TODO NEED TO MAKE SURE GOT 2 PLAYERS
+    if (players.length < 2) {
+      return;
+    }
     setGameStart(true);
+    await updateGameState();
+    if (roomData && userID == roomData["host_id"]) {
+      setIsDrawer(true);
+    }
+    await addRound(roomData ? roomData["host_id"] : "", 1);
+  }
+
+  async function addRound(user_id: string, topic_id: number) {
+    const { error } = await supabase.from("art_rounds").insert({
+      room_id: room_id,
+      topic_id: topic_id,
+      drawer_id: user_id,
+    });
+    if (error) {
+      console.log(error);
+    }
+    return;
+  }
+
+  async function updateGameState() {
     const { error } = await supabase
       .from("art_rooms")
       .update({ is_active: true })
       .eq("room_id", room_id);
     if (error) {
       console.log(error);
-      return;
     }
+    return;
   }
 
   async function getRoomData(room_id: string) {
@@ -173,12 +220,6 @@ const Game = () => {
       setRoomData(roomData);
       if (roomData) {
         setGameStart(Boolean(roomData["is_active"]));
-        console.log(
-          userID == roomData["host_id"],
-          userID,
-          roomData["host_id"],
-          "hi"
-        );
         setIsHost(userID == roomData["host_id"]);
       }
     }
@@ -227,7 +268,12 @@ const Game = () => {
           Start Game
         </Button>
       )}
-      {/* {gameStart && <ReactSketchCanvas></ReactSketchCanvas>} */}
+
+      {gameStart && (
+        <ReactSketchCanvas
+          className={!isDrawer ? "pointer-events-none" : ""}
+        ></ReactSketchCanvas>
+      )}
     </div>
   );
 };
