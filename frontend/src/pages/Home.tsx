@@ -127,7 +127,7 @@ export default function Home() {
     <div className="w-full flex justify-center h-full md:items-center p-5">
       <div className="flex flex-col items-center md:w-3/5">
         {/* Logo */}
-        <img className="h-32 md:mb-6 object-contain" src={Logo} alt="Logo" />
+        <img className="h-32 md:h-44 md:mb-6 object-contain" src={Logo} alt="Logo" />
         {/* Card */}
         <Card className="p-6 w-full">
           {/* Outer Grid */}
