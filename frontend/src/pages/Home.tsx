@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import logo from "@/assets/Logo.png";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -43,8 +44,9 @@ export default function Home() {
   };
 
   return (
-    <div className="flex justify-center items-center h-full">
-      <div className="p-4 bg-white rounded-xl">
+    <div className="flex justify-center items-center h-full flex-col gap-4">
+      <img src={logo} alt="Art-ificial Failure Logo"  className="h-44"/>
+      <div className="p-4 bg-white rounded-xl flex flex-col items-center justify-center gap-3">
         <p>Home {userID}</p>
         <div className="grid w-full max-w-sm items-center gap-1.5">
           <Label htmlFor="name">Name</Label>
@@ -70,7 +72,13 @@ export default function Home() {
             }}
           />
         </div>
-        <Button onClick={handleEnterLobby}>Enter</Button>
+        <Button
+          onClick={handleEnterLobby}
+          size={"lg"}
+          className="w-full rounded-md bg-indigo-600 px-3.5 py-2.5 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        >
+          Play!
+        </Button>
       </div>
     </div>
   );
