@@ -6,7 +6,7 @@ function Layout() {
     <main className="fullHeight flex text-black w-full">
       <div className="grow w-full">
         <Outlet />
-        <Toaster richColors />
+        <Toaster richColors duration={500} />
       </div>
     </main>
   );

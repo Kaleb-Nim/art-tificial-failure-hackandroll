@@ -18,14 +18,14 @@ interface PlayerCardProps {
 const PlayerCard: React.FC<PlayerCardProps> = ({ data, isHost, score }) => {
   return (
     <Card className="bg-white shadow-md rounded-lg">
-      <CardHeader className="flex flex-row items-center gap-4 p-4">
+      <CardHeader className="flex flex-row items-center gap-4 px-2 py-5">
         {/* Avatar Section */}
         <div className="relative">
           <div className="w-14 h-14 rounded-full overflow-hidden">
             <img
               className="w-full h-full object-cover"
-              src={data.character_img || ""}
-              alt={`${data.name}'s avatar`}
+              src={(data && data.character_img) || ""}
+              alt={`${(data && data.name) || ""}'s avatar`}
             />
           </div>
           {isHost && (
@@ -40,7 +40,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ data, isHost, score }) => {
         {/* Player Info Section */}
         <div className="flex-1">
           <CardTitle className="text-teal-600 font-semibold text-lg">
-            {data.name || ""}
+            {(data && data.name) || ""}
           </CardTitle>
           <CardDescription className="text-gray-600 text-sm">
             {score} Points

@@ -10,14 +10,17 @@ const Guesses = ({ userName, guess, isCurrentUser }: GuessProps) => {
   return (
     <div
       className={cn(
-        "max-w-[200px] rounded-lg p-2 mb-2",
+        "max-w-[200px] rounded-lg p-2",
         isCurrentUser
           ? "bg-blue-500 text-white ml-auto"
           : "bg-gray-200 text-black mr-auto"
       )}
     >
-      <div className="text-sm font-semibold">{userName}</div>
-      <div className="break-words">{guess}</div>
+      <span className="text-sm font-semibold">
+        {userName}
+        {":"}
+      </span>{" "}
+      <span className="break-words">{guess}</span>
     </div>
   );
 };

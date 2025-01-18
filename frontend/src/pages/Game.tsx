@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import GameLayout from "@/components/GameLayout";
+import { cn } from "@/lib/utils";
 
 const Game = () => {
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
@@ -50,6 +50,15 @@ const Game = () => {
       userId: string;
     }>
   >([]);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [guesses]);
 
   async function getUserInfo(user_id: string) {
     const { data, error } = await supabase
@@ -198,6 +207,9 @@ const Game = () => {
         })
         .on("broadcast", { event: "updateRound" }, (payload) => {
           setCurrentRound(payload.payload["round_id"]);
+        })
+        .on("broadcast", { event: "addGuess" }, (payload) => {
+          setGuesses((prev) => [...prev, payload.payload]);
         });
 
       newChannel
@@ -653,20 +665,25 @@ const Game = () => {
     //     </div>
     //   )}
     // </div>
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full md:p-8 p-4">
       {/* Header */}
-      <div className="h-16 bg-white text-black flex items-center justify-between px-6 mt-8 mx-6 rounded-lg shadow">
+      <div className="h-16 bg-white text-black flex items-center justify-between px-6 md:mx-6 rounded-lg shadow">
         <div className="text-lg font-semibold">Topic:</div>
         <div className="text-lg font-bold">Sports</div>
         <div className="text-xl font-bold text-red-500">35s</div>
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 bg-white mt-6 mx-6 rounded-lg shadow overflow-hidden">
+      <div className="flex flex-1 bg-white mt-6 md:mx-6 rounded-lg shadow overflow-hidden">
         {/* Left Sidebar */}
-        <div className="w-1/5 bg-blue-900 text-white p-4">
-          <div className="text-center text-lg font-semibold mb-4">Players</div>
-          <ul className="space-y-2">
+        <div
+          className={cn(
+            "min-w-[200px] max-w-[20%] w-full bg-blue-900 text-white p-4 flex-col gap-4",
+            !gameStart ? "flex" : "flex md:flex"
+          )}
+        >
+          <div className="text-center text-lg font-semibold">Players</div>
+          <ul className="space-y-2 max-h-[calc(100%-28px-36px-5px)] overflow-y-auto">
             <li className="flex flex-col gap-5">
               {players.map((event: UserRoomType) => {
                 const playerHost = roomData
@@ -684,39 +701,102 @@ const Game = () => {
               <Dialog open={openDialog}>
                 <DialogContent>{dialogContent}</DialogContent>
               </Dialog>
-              {!gameStart && (
-                <Button
-                  onClick={startGame}
-                  disabled={!isHost || players.length < 2}
-                >
-                  Start Game
-                </Button>
-              )}
             </li>
           </ul>
+          {!gameStart && (
+            <Button
+              onClick={startGame}
+              disabled={!isHost || players.length < 2}
+              className="mx-auto mt-auto"
+            >
+              Start Game
+            </Button>
+          )}
         </div>
 
         {/* Middle Content */}
-        <div className="flex-1 bg-gray-100 p-4 flex flex-col">
-          {/* <ReactSketchCanvas
-            className="w-full h-full pointer-events-none"
-            canvasColor="white"
-          /> */}
+        <div className="flex-1 bg-gray-100 p-4 flex flex-col h-full justify-center items-center">
           {gameStart && (
             <ReactSketchCanvas
-              className={`w-full h-full ${
+              className={`w-full mx-auto h-full aspect-square ${
                 !isDrawer ? "pointer-events-none" : ""
               }`}
               canvasColor="white"
               onStroke={(path, isEraser) => handleStrokeChange(path, isEraser)}
               strokeColor="black"
+              ref={canvasRef}
             />
           )}
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-1/5 bg-gray-50 border-l border-gray-300 p-4 flex flex-col">
-          <div className="text-lg font-semibold text-gray-700 mb-4">Chat</div>
+        <div className="min-w-[200px] max-w-[20%] w-full bg-gray-50 border-l border-gray-300 p-4 md:flex flex-col flex gap-4">
+          <div className="text-lg font-semibold text-gray-700">Chat</div>
+          <div
+            className="gap-2 max-h-[calc(100%-28px-36px-5px)] overflow-y-auto flex flex-col"
+            ref={scrollContainerRef}
+          >
+            {guesses.map((g, index) => (
+              <Guesses
+                key={index}
+                userName={g.userName}
+                guess={g.guess}
+                isCurrentUser={g.userId === userID}
+              />
+            ))}
+          </div>
+          {gameStart && !isDrawer && (
+            <form
+              onSubmit={async (e: FormEvent) => {
+                e.preventDefault();
+                if (guess.trim()) {
+                  try {
+                    const { data: userData } = await supabase
+                      .from("art_users")
+                      .select("name")
+                      .eq("user_id", userID)
+                      .single();
+
+                    const { error } = await supabase
+                      .from("art_round_guesses")
+                      .upsert({
+                        round_id: currentRound,
+                        user_id: userID,
+                        guess: guess.trim(),
+                      });
+
+                    if (error) throw error;
+
+                    channel?.send({
+                      type: "broadcast",
+                      event: "addGuess",
+                      payload: {
+                        userName: userData?.name || "Unknown",
+                        guess: guess.trim(),
+                        userId: userID,
+                      },
+                    });
+
+                    toast.success("Guess submitted!", { duration: 500 });
+                    setGuess("");
+                  } catch (error) {
+                    console.error("Error submitting guess:", error);
+                    toast.error("Failed to submit guess");
+                  }
+                }
+              }}
+              className="flex gap-2 mt-auto"
+            >
+              <Input
+                type="text"
+                placeholder="Enter your guess..."
+                value={guess}
+                onChange={(e) => setGuess(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit">Submit</Button>
+            </form>
+          )}
         </div>
       </div>
     </div>
