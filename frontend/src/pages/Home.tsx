@@ -6,14 +6,28 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import logo from "@/assets/Logo.png";
 
 export default function Home() {
   const navigate = useNavigate();
-  const [userID, _] = useLocalStorageState<string>("user_id", uuidv4());
+  const [searchParams] = useSearchParams();
+
+  const [userID] = useLocalStorageState<string>("user_id", uuidv4());
   const [name, setName] = useLocalStorageState<string>("name", "");
-  const [roomID, setroomID] = useState<string>("");
+  const [roomID, setRoomID] = useState<string>("");
+  const [noRoomError, setNoRoomError] = useState(false);
+
+  useEffect(() => {
+    setRoomID(searchParams.get("room_id") || "");
+    setNoRoomError(Boolean(searchParams.get("toast")) || false);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (noRoomError) {
+      toast.error("Room does not exist!");
+    }
+  }, [noRoomError]);
 
   useEffect(() => {
     async function upsertUserData() {
@@ -131,7 +145,7 @@ export default function Home() {
             placeholder="Enter Room ID"
             defaultValue={roomID}
             onInput={(event) => {
-              setroomID((event.target as HTMLInputElement).value);
+              setRoomID((event.target as HTMLInputElement).value);
             }}
           />
         </div>
