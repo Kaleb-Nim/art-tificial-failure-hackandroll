@@ -1,4 +1,3 @@
-import { UserType } from "@/types";
 import { cn } from "@/lib/utils";
 
 type GuessProps = {

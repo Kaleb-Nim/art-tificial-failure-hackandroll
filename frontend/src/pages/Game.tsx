@@ -42,11 +42,13 @@ const Game = () => {
   const [dialogContent, setDialogContent] = useState<ReactNode>();
   const [currentRound, setCurrentRound] = useState<number>();
   const [guess, setGuess] = useState<string>("");
-  const [guesses, setGuesses] = useState<Array<{
-    userName: string;
-    guess: string;
-    userId: string;
-  }>>([]);
+  const [guesses, setGuesses] = useState<
+    Array<{
+      userName: string;
+      guess: string;
+      userId: string;
+    }>
+  >([]);
 
   async function getUserInfo(user_id: string) {
     const { data, error } = await supabase
@@ -439,7 +441,7 @@ const Game = () => {
       const blob = await base64Response.blob();
 
       // Upload to Supabase storage
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from("art")
         .upload(`round_${currentRound}.png`, blob, {
           contentType: "image/png",
@@ -510,46 +512,49 @@ const Game = () => {
             strokeColor="black"
           />
           {isDrawer ? (
-            <Button onClick={saveCanvasToSupabase}>
-              Save Drawing
-            </Button>
+            <Button onClick={saveCanvasToSupabase}>Save Drawing</Button>
           ) : (
-            <form onSubmit={async (e: FormEvent) => {
-              e.preventDefault();
-              if (guess.trim()) {
-                try {
-                  const { data: userData } = await supabase
-                    .from("art_users")
-                    .select("name")
-                    .eq("user_id", userID)
-                    .single();
+            <form
+              onSubmit={async (e: FormEvent) => {
+                e.preventDefault();
+                if (guess.trim()) {
+                  try {
+                    const { data: userData } = await supabase
+                      .from("art_users")
+                      .select("name")
+                      .eq("user_id", userID)
+                      .single();
 
-                  const { error } = await supabase
-                    .from("art_round_guesses")
-                    .upsert({
-                      round_id: currentRound,
-                      user_id: userID,
-                      guess: guess.trim()
-                    });
+                    const { error } = await supabase
+                      .from("art_round_guesses")
+                      .upsert({
+                        round_id: currentRound,
+                        user_id: userID,
+                        guess: guess.trim(),
+                      });
 
-                  if (error) throw error;
+                    if (error) throw error;
 
-                  // Add guess to local state
-                  setGuesses(prev => [...prev, {
-                    userName: userData?.name || "Unknown",
-                    guess: guess.trim(),
-                    userId: userID
-                  }]);
+                    // Add guess to local state
+                    setGuesses((prev) => [
+                      ...prev,
+                      {
+                        userName: userData?.name || "Unknown",
+                        guess: guess.trim(),
+                        userId: userID,
+                      },
+                    ]);
 
-                  toast.success("Guess submitted!");
-                  setGuess("");
-                } catch (error) {
-                  console.error("Error submitting guess:", error);
-                  toast.error("Failed to submit guess");
+                    toast.success("Guess submitted!");
+                    setGuess("");
+                  } catch (error) {
+                    console.error("Error submitting guess:", error);
+                    toast.error("Failed to submit guess");
+                  }
                 }
-              }
-            }}
-            className="flex gap-2">
+              }}
+              className="flex gap-2"
+            >
               <Input
                 type="text"
                 placeholder="Enter your guess..."
@@ -557,9 +562,7 @@ const Game = () => {
                 onChange={(e) => setGuess(e.target.value)}
                 className="flex-1"
               />
-              <Button type="submit">
-                Submit Guess
-              </Button>
+              <Button type="submit">Submit Guess</Button>
             </form>
           )}
           <div className="mt-4 space-y-2">

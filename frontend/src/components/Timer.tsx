@@ -5,7 +5,7 @@ import "react-circular-progressbar/dist/styles.css";
 
 const Timer = () => {
   // Timer duration (60 seconds)
-  const [duration, setDuration] = useState(60);
+  const [duration] = useState(60);
 
   // Initialize the expiry timestamp
   const getExpiryTimestamp = () => {
