@@ -43,33 +43,35 @@ export default function Home() {
   };
 
   return (
-    <div>
-      <p>Home {userID}</p>
-      <div className="grid w-full max-w-sm items-center gap-1.5">
-        <Label htmlFor="name">Name</Label>
-        <Input
-          type="text"
-          id="name"
-          placeholder="Enter Name"
-          defaultValue={name}
-          onInput={(event) => {
-            setName((event.target as HTMLInputElement).value);
-          }}
-        />
+    <div className="flex justify-center items-center h-full">
+      <div className="p-4 bg-white rounded-xl">
+        <p>Home {userID}</p>
+        <div className="grid w-full max-w-sm items-center gap-1.5">
+          <Label htmlFor="name">Name</Label>
+          <Input
+            type="text"
+            id="name"
+            placeholder="Enter Name"
+            defaultValue={name}
+            onInput={(event) => {
+              setName((event.target as HTMLInputElement).value);
+            }}
+          />
+        </div>
+        <div className="grid w-full max-w-sm items-center gap-1.5">
+          <Label htmlFor="roomID">Room ID</Label>
+          <Input
+            type="text"
+            id="roomID"
+            placeholder="Enter Room ID"
+            defaultValue={gameID}
+            onInput={(event) => {
+              setGameID((event.target as HTMLInputElement).value);
+            }}
+          />
+        </div>
+        <Button onClick={handleEnterLobby}>Enter</Button>
       </div>
-      <div className="grid w-full max-w-sm items-center gap-1.5">
-        <Label htmlFor="roomID">Room ID</Label>
-        <Input
-          type="text"
-          id="roomID"
-          placeholder="Enter Room ID"
-          defaultValue={gameID}
-          onInput={(event) => {
-            setGameID((event.target as HTMLInputElement).value);
-          }}
-        />
-      </div>
-      <Button onClick={handleEnterLobby}>Enter</Button>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 function Layout() {
   return (
-    <main className="fullHeight bg-[#fbf3ca] flex text-black w-full">
+    <main className="fullHeight flex text-black w-full">
       <div className="grow w-full">
         <Outlet />
         <Toaster richColors />
