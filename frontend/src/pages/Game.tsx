@@ -6,7 +6,7 @@ import supabase from "@/lib/supabase";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { UserRoomType, RoomType } from "@/types";
-import { ReactSketchCanvas } from "react-sketch-canvas";
+// import { ReactSketchCanvas } from "react-sketch-canvas";
 
 const Game = () => {
   const channelRef = useRef<RealtimeChannel | undefined>(undefined);
@@ -227,7 +227,7 @@ const Game = () => {
           Start Game
         </Button>
       )}
-      {gameStart && <ReactSketchCanvas></ReactSketchCanvas>}
+      {/* {gameStart && <ReactSketchCanvas></ReactSketchCanvas>} */}
     </div>
   );
 };

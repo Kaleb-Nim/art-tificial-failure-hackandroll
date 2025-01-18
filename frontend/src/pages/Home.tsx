@@ -13,6 +13,7 @@ import logo from "@/assets/Logo.png";
 import { Card } from "@/components/ui/card";
 
 import TodoCarousel from "@/components/TodoCarousel";
+import AvatarCarousel from "@/components/AvatarCarousel";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -141,7 +142,7 @@ export default function Home() {
                   setName(e.target.value);
                 }}
               />
-              <div className="bg-black aspect-[2/1] w-full"></div>
+              <AvatarCarousel />
               <Input
                 placeholder="Enter Room ID..."
                 onChange={(e) => setRoomID(e.target.value)}
