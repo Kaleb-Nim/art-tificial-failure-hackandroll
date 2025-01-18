@@ -115,7 +115,7 @@ const Game = () => {
           },
           (payload) => {
             console.log("Change received!", payload);
-            if (canvasRef.current) {
+            if (canvasRef.current && !isDrawer) {
               canvasRef.current?.eraseMode(payload.new["is_eraser"]);
               canvasRef.current?.loadPaths([payload.new["stroke_path"]]);
             }
@@ -390,28 +390,33 @@ const Game = () => {
 
   const predictDrawing = async (base64Image: string) => {
     try {
-      const response = await fetch('https://art-ificialfailure-backend.fly.dev/api/v1/predict', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          images: [{
-            image_id: `round_${currentRound}`,
-            base64_data: base64Image.split(',')[1], // Remove data URL prefix
-            format: 'image/png'
-          }],
-          model: "openai",
-          top_k: 3,
-          confidence_threshold: 0.5
-        })
-      });
+      const response = await fetch(
+        "https://art-ificialfailure-backend.fly.dev/api/v1/predict",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            images: [
+              {
+                image_id: `round_${currentRound}`,
+                base64_data: base64Image.split(",")[1], // Remove data URL prefix
+                format: "image/png",
+              },
+            ],
+            model: "openai",
+            top_k: 3,
+            confidence_threshold: 0.5,
+          }),
+        }
+      );
 
       const data = await response.json();
-      console.log('Prediction response:', data);
+      console.log("Prediction response:", data);
       return data;
     } catch (error) {
-      console.error('Error getting predictions:', error);
+      console.error("Error getting predictions:", error);
       throw error;
     }
   };
@@ -425,7 +430,7 @@ const Game = () => {
     try {
       // Get the canvas image as base64
       const imageData = await canvasRef.current.exportImage("png");
-      
+
       // Get predictions first
       await predictDrawing(imageData);
 
@@ -435,20 +440,20 @@ const Game = () => {
 
       // Upload to Supabase storage
       const { data, error } = await supabase.storage
-        .from('art')
+        .from("art")
         .upload(`round_${currentRound}.png`, blob, {
-          contentType: 'image/png',
-          upsert: true
+          contentType: "image/png",
+          upsert: true,
         });
 
       if (error) {
         throw error;
       }
 
-      toast.success('Drawing saved and analyzed successfully!');
+      toast.success("Drawing saved and analyzed successfully!");
     } catch (error) {
-      console.error('Error saving canvas:', error);
-      toast.error('Failed to save drawing');
+      console.error("Error saving canvas:", error);
+      toast.error("Failed to save drawing");
     }
   };
 
@@ -526,7 +531,7 @@ const Game = () => {
                       user_id: userID,
                       guess: guess.trim()
                     });
-                    
+
                   if (error) throw error;
 
                   // Add guess to local state
@@ -535,7 +540,7 @@ const Game = () => {
                     guess: guess.trim(),
                     userId: userID
                   }]);
-                  
+
                   toast.success("Guess submitted!");
                   setGuess("");
                 } catch (error) {

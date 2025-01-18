@@ -16,7 +16,7 @@ import { type CarouselApi } from "@/components/ui/carousel";
 
 export default function Home() {
   const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useLocalStorageState("character_img", 1);
+  const [current, setCurrent] = useLocalStorageState("character_img", 0);
   useEffect(() => {
     if (!api) {
       return;
