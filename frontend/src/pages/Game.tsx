@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, ReactNode } from "react";
 import { useParams } from "react-router-dom";
 import PlayerCard from "@/components/PlayerCard";
 import { useNavigate } from "react-router-dom";
@@ -10,10 +10,10 @@ import { ReactSketchCanvas, ReactSketchCanvasRef } from "react-sketch-canvas";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 const Game = () => {
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
@@ -33,6 +33,7 @@ const Game = () => {
   const [players, setPlayers] = useState<UserRoomType[]>([]);
   const [roomData, setRoomData] = useState<RoomType>();
   const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [dialogContent, setDialogContent] = useState<ReactNode>();
 
   async function getUserInfo(user_id: string) {
     const { data, error } = await supabase
@@ -53,6 +54,18 @@ const Game = () => {
     return data[0];
   }
 
+  async function disablePlayer(user_id: string) {
+    const { error } = await supabase
+      .from("art_room_users")
+      .update({ is_active: false })
+      .eq("user_id", user_id)
+      .eq("room_id", room_id);
+    if (error) {
+      console.log(error);
+    }
+    return;
+  }
+
   useEffect(() => {
     const initChannel = async () => {
       const newChannel = supabase.channel(`art_${room_id}`, {
@@ -65,6 +78,28 @@ const Game = () => {
           },
         },
       });
+
+      newChannel
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "art_rooms",
+            filter: `room_id=eq.${room_id}`,
+          },
+          (payload) => {
+            console.log("Change received!", payload);
+            setGameStart(payload.new["is_active"]);
+          }
+        )
+        .on("broadcast", { event: "openDialog" }, (payload) => {
+          setIsDrawer(userID == payload.payload["drawer_id"]);
+          setOpenDialog(true);
+        })
+        .on("broadcast", { event: "closeDialog" }, () => {
+          setOpenDialog(false);
+        });
 
       newChannel
         .on("presence", { event: "sync" }, () => {
@@ -81,6 +116,7 @@ const Game = () => {
         })
         .on("presence", { event: "leave" }, async ({ key, leftPresences }) => {
           console.log("leave", key, leftPresences);
+          disablePlayer(key);
           setPlayers((prev) =>
             prev.filter((e) => {
               return e.user_id != key;
@@ -141,19 +177,88 @@ const Game = () => {
     return data;
   }
 
-  async function getRandomTopic() {}
+  async function handleAddRound(topic_id: number) {
+    await addRound(roomData ? roomData["host_id"] : "", topic_id);
+    channel?.send({ type: "broadcast", event: "closeDialog" });
+  }
+
+  useEffect(() => {
+    async function getTopics(topicArr: number[]): Promise<void> {
+      try {
+        const allTopics = await Promise.all(
+          topicArr.map(async (topic_id) => {
+            return getTopic(topic_id); // Returns array of topics for each ID
+          })
+        );
+        const flatTopics = allTopics.flat();
+        setDialogContent(
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-center">
+                Pick Your Topic!
+              </DialogTitle>
+            </DialogHeader>
+            <div className="w-full flex justify-around p-4">
+              {flatTopics.map((e) => {
+                return (
+                  <Button
+                    size={"lg"}
+                    key={"Topic" + e.topic_id}
+                    onClick={() => handleAddRound(e.topic_id)}
+                  >
+                    {e.name}
+                  </Button>
+                );
+              })}
+            </div>
+          </>
+        );
+      } catch (error) {
+        console.log("Error fetching topics:", error);
+      }
+    }
+
+    if (isDrawer) {
+      let topicArr = getRandomTopics();
+      getTopics(topicArr);
+    } else {
+      setDialogContent(
+        <>
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              Other player choosing topic...
+            </DialogTitle>
+          </DialogHeader>
+        </>
+      );
+    }
+  }, [isDrawer, openDialog]);
+
+  function getRandomTopics() {
+    let numbers: number[] = [];
+    while (numbers.length < 3) {
+      let num = Math.floor(Math.random() * 6) + 1;
+      if (!numbers.includes(num)) {
+        numbers.push(num);
+      }
+    }
+    return numbers;
+  }
 
   async function startGame() {
     if (players.length < 2) {
+      toast.error("Require 1 more player to start");
       return;
     }
     setGameStart(true);
     await updateGameState();
-    if (roomData && userID == roomData["host_id"]) {
-      setIsDrawer(true);
-    }
-    setOpenDialog(true);
-    await addRound(roomData ? roomData["host_id"] : "", 1);
+    channel?.send({
+      type: "broadcast",
+      event: "openDialog",
+      payload: {
+        drawer_id: roomData && roomData["host_id"],
+      },
+    });
   }
 
   async function addRound(user_id: string, topic_id: number) {
@@ -261,19 +366,11 @@ const Game = () => {
           );
         })}
       </div>
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Are you absolutely sure?</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. This will permanently delete your
-              account and remove your data from our servers.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
+      <Dialog open={openDialog}>
+        <DialogContent>{dialogContent}</DialogContent>
       </Dialog>
       {!gameStart && (
-        <Button onClick={startGame} disabled={!isHost}>
+        <Button onClick={startGame} disabled={!isHost || players.length < 2}>
           Start Game
         </Button>
       )}
