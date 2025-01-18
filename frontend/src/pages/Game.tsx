@@ -42,6 +42,11 @@ const Game = () => {
   const [dialogContent, setDialogContent] = useState<ReactNode>();
   const [currentRound, setCurrentRound] = useState<number>();
   const [guess, setGuess] = useState<string>("");
+  const [guesses, setGuesses] = useState<Array<{
+    userName: string;
+    guess: string;
+    userId: string;
+  }>>([]);
 
   async function getUserInfo(user_id: string) {
     const { data, error } = await supabase
