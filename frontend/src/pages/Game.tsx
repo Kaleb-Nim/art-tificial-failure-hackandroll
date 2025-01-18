@@ -196,10 +196,6 @@ const Game = () => {
         })
         .on("presence", { event: "join" }, async ({ key, newPresences }) => {
           console.log("join", key, newPresences);
-          await activatePlayer(key, true);
-          const data = await getUserInfo(key);
-          console.log(data);
-          setPlayers((prev) => [...prev, data]);
         })
         .on("presence", { event: "leave" }, async ({ key, leftPresences }) => {
           console.log("leave", key, leftPresences);
