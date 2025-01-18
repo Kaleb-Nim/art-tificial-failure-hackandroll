@@ -2,12 +2,17 @@ import { useLocalStorageState } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import supabase from "@/lib/supabase";
+import Logo from "@/assets/Logo.png";
+
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import logo from "@/assets/Logo.png";
+import { Card } from "@/components/ui/card";
+
+import TodoCarousel from "@/components/TodoCarousel";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -31,14 +36,13 @@ export default function Home() {
 
   useEffect(() => {
     async function upsertUserData() {
-      const { data, error } = await supabase.from("art_users").upsert({
+      const { error } = await supabase.from("art_users").upsert({
         user_id: userID,
         name: name,
       });
       if (error) {
         return console.log(error);
       }
-      console.log(data);
       return;
     }
 
@@ -121,46 +125,49 @@ export default function Home() {
   };
 
   return (
-    <div className="flex justify-center items-center h-full flex-col gap-4">
-      <img src={logo} alt="Art-ificial Failure Logo" className="h-44" />
-      <div className="p-4 bg-white rounded-xl flex flex-col items-center justify-center gap-2">
-        <p>Home {userID}</p>
-        <div className="grid w-full max-w-sm items-center gap-1.5">
-          <Label htmlFor="name">Name</Label>
-          <Input
-            type="text"
-            id="name"
-            placeholder="Enter Name"
-            defaultValue={name}
-            onInput={(event) => {
-              setName((event.target as HTMLInputElement).value);
-            }}
-          />
-        </div>
-        <div className="grid w-full max-w-sm items-center gap-1.5">
-          <Label htmlFor="roomID">Room ID</Label>
-          <Input
-            type="text"
-            id="roomID"
-            placeholder="Enter Room ID"
-            defaultValue={roomID}
-            onInput={(event) => {
-              setRoomID((event.target as HTMLInputElement).value);
-            }}
-          />
-        </div>
-        <Button
-          onClick={handleEnterLobby}
-          className="w-full rounded-md bg-indigo-600 px-3.5 py-2.5 h-10 text-lg font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          Play!
-        </Button>
-        <Button
-          onClick={handleCreateLobby}
-          className="w-full rounded-md bg-green-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
-        >
-          Create Private Room
-        </Button>
+    <div className="w-full flex justify-center mt-20 mb-6">
+      <div className="flex flex-col items-center w-3/5">
+        {/* Logo */}
+        <img className="h-44 mb-6" src={Logo} alt="Logo" />
+        {/* Card */}
+        <Card className="p-6 w-full">
+          {/* Outer Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Column 1 */}
+            <div className="flex flex-col items-center gap-4">
+              <Input
+                placeholder="Enter your name..."
+                onChange={(e) => {
+                  setName(e.target.value);
+                }}
+              />
+              <div className="bg-black aspect-[2/1] w-full"></div>
+              <Input
+                placeholder="Enter Room ID..."
+                onChange={(e) => setRoomID(e.target.value)}
+              />
+              <Button
+                variant="default"
+                className="bg-blue-600 text-white w-4/5"
+                onClick={handleEnterLobby}
+              >
+                Join Room
+              </Button>
+              <Button
+                variant="default"
+                className="bg-red-500 text-white w-4/5"
+                onClick={handleCreateLobby}
+              >
+                Create Room
+              </Button>
+            </div>
+
+            {/* Column 2 */}
+            <div className="flex flex-col items-center gap-4">
+              <TodoCarousel />
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );

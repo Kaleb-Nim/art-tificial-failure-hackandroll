@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import supabase from "@/lib/supabase";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { ReactSketchCanvas } from "react-sketch-canvas";
 import { UserRoomType, RoomType } from "@/types";
 
 const Game = () => {
