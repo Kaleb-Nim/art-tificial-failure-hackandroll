@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import Logo from "../assets/Logo.png";
 import { RoundType } from "@/types";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 type AIPrediction = {
   guess: string;
@@ -9,6 +10,7 @@ type AIPrediction = {
 };
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@radix-ui/react-separator";
 import PlayerCard from "@/components/PlayerCard";
 import supabase from "@/lib/supabase";
@@ -23,6 +25,7 @@ async function getDrawingUrl(roundId: string): Promise<string | null> {
 }
 
 const Review = () => {
+  const navigate = useNavigate();
   const { round_id } = useParams();
   const [roundData, setRoundData] = useState<RoundType>();
   const [topic, setTopic] = useState<string>("");
@@ -172,7 +175,9 @@ const Review = () => {
 
             {/* Right column (slightly smaller) */}
             <div className="w-1/4 p-4 h-full self-stretch flex flex-col gap-2">
-              <h2 className="text-lg font-semibold">AI Predictions</h2>
+              <h2 className="text-lg font-semibold text-center">
+                AI Predictions
+              </h2>
               <div>
                 <p className="font-semibold text-xl">{aiPrediction.guess}</p>
                 <p>Confidence Score: {aiPrediction.confidence.toFixed(2)}</p>
@@ -184,6 +189,13 @@ const Review = () => {
                   {roundData && roundData["winner"]}
                 </span>
               </h1>
+              <Button
+                className="flex flex-row bg-blue-600"
+                onClick={() => navigate("/")}
+              >
+                Play Again
+                <ArrowRight />
+              </Button>
             </div>
           </div>
         </CardContent>

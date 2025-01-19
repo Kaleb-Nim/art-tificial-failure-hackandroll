@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -12,6 +13,8 @@ type CarouselProps = {
 };
 
 const AvatarCarousel = ({ setApi, startIndex }: CarouselProps) => {
+  const initialIndexRef = useRef(startIndex);
+
   const carouselSlides = [
     {
       avatar: "./1.png",
@@ -40,7 +43,7 @@ const AvatarCarousel = ({ setApi, startIndex }: CarouselProps) => {
       className="w-[calc(100%-6rem)]"
       opts={{
         loop: true,
-        startIndex: startIndex,
+        startIndex: initialIndexRef.current,
       }}
       setApi={setApi}
     >
