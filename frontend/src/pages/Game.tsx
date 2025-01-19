@@ -814,7 +814,12 @@ const Game = () => {
         <div className="flex-1 bg-gray-100 p-4 flex flex-col h-full justify-center items-center">
           {gameStart && (
             <div className="w-full h-full relative">
-              <div className="absolute top-3 left-3 flex gap-2">
+              <div
+                className={cn(
+                  "absolute top-3 left-3 gap-2",
+                  isDrawer ? "flex" : "hidden"
+                )}
+              >
                 <Button
                   size={"icon"}
                   onClick={() => setDrawMode((prev) => !prev)}
