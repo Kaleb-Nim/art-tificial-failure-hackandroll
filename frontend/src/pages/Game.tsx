@@ -92,7 +92,11 @@ const Game = () => {
       if (isDrawer) {
         await saveCanvasToSupabase(true);
       }
-      channel?.send({ type: "broadcast", event: "review" });
+      channel?.send({
+        type: "broadcast",
+        event: "review",
+        payload: { round_id: currentRound },
+      });
     },
     autoStart: false,
   });
@@ -267,8 +271,8 @@ const Game = () => {
         .on("broadcast", { event: "aiPredict" }, (payload) => {
           setPrediction(payload.payload["prediction"]);
         })
-        .on("broadcast", { event: "review" }, () => {
-          navigate(`/${currentRound}/review`);
+        .on("broadcast", { event: "review" }, (payload) => {
+          navigate(`/${payload.payload['round_id']}/review`);
         });
 
       newChannel
