@@ -246,7 +246,6 @@ const Game = () => {
             event: "INSERT",
             schema: "public",
             table: "art_draw_strokes",
-            filter: `round_id=eq.${currentRound}`,
           },
           (payload) => {
             console.log("Change received!", payload);
@@ -270,6 +269,7 @@ const Game = () => {
           handleRestart();
         })
         .on("broadcast", { event: "updateRound" }, (payload) => {
+          console.log("UPDATE ROUND", payload.payload["round_id"]);
           setCurrentRound(payload.payload["round_id"]);
         })
         .on("broadcast", { event: "addGuess" }, (payload) => {
@@ -440,9 +440,9 @@ const Game = () => {
         payload: { prediction: prediction },
       });
     }
-    let checkDuration = [10, 20, 30, 40, 50];
+    let checkDuration = [5, 15, 25, 35];
     if (checkDuration.includes(seconds)) {
-      runPrediction(); // Call your function when there are 15 seconds left
+      runPrediction();
     }
   }, [seconds]);
 
@@ -537,7 +537,6 @@ const Game = () => {
     if (error) {
       console.log(error);
     }
-    setCurrentRound((data as RoundType[])[0].id);
     await channel?.send({
       type: "broadcast",
       event: "updateRound",
@@ -741,6 +740,7 @@ const Game = () => {
   };
 
   const handleStrokeChange = async (path: CanvasPath, isEraser: boolean) => {
+    console.log("hi");
     const { error } = await supabase.from("art_draw_strokes").insert({
       round_id: currentRound,
       is_eraser: isEraser,

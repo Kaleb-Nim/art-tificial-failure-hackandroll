@@ -44,6 +44,12 @@ const Review = () => {
       const imageUrl = await getDrawingUrl(round_id);
       if (imageUrl) {
         setCanvasImage(imageUrl);
+      } else {
+        setCanvasImage(
+          import.meta.env.VITE_SUPABASE_URL +
+            "/storage/v1/object/public/art/" +
+            `round_${round_id}.png`
+        );
       }
 
       // Fetch AI prediction
