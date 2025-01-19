@@ -43,7 +43,7 @@ const Review = () => {
   useEffect(() => {
     async function fetchData() {
       // Hard coded round_id for testing
-      const roundId = "124";
+      const roundId = "131";
       
       // Fetch drawing
       const imageUrl = await getDrawingUrl(roundId);
