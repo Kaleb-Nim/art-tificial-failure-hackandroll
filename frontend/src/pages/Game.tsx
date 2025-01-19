@@ -91,14 +91,29 @@ const Game = () => {
     expiryTimestamp: getExpiryTimestamp(),
     onExpire: async () => {
       console.log("Timer expired");
-      if (isDrawer) {
-        await saveCanvasToSupabase(true);
+
+      try {
+        // Save canvas to Supabase if isDrawer is true
+        if (isDrawer) {
+          await saveCanvasToSupabase(true);
+        }
+
+        // Delay the broadcast by 2500ms before sending the message
+        await new Promise((resolve) => setTimeout(resolve, 1250));
+
+        // Send the message after the timeout
+        try {
+          await channel?.send({
+            type: "broadcast",
+            event: "review",
+            payload: { round_id: currentRound },
+          });
+        } catch (err) {
+          console.error("Error sending message:", err);
+        }
+      } catch (err) {
+        console.error("Error in onExpire:", err);
       }
-      await channel?.send({
-        type: "broadcast",
-        event: "review",
-        payload: { round_id: currentRound },
-      });
     },
     autoStart: false,
   });
@@ -722,14 +737,11 @@ const Game = () => {
       // Convert base64 to blob for storage
       const base64Response = await fetch(imageData);
       const blob = await base64Response.blob();
-
+      console.log("UPLOAD IMAGE", blob, `round_${currentRound}.png`);
       // Upload to Supabase storage
       const { error } = await supabase.storage
         .from("art")
-        .upload(`round_${currentRound}.png`, blob, {
-          contentType: "image/png",
-          upsert: true,
-        });
+        .upload(`round_${currentRound}.png`, blob, { upsert: true });
 
       if (error) {
         throw error;
