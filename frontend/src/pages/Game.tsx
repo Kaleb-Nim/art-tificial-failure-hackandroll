@@ -812,7 +812,7 @@ const Game = () => {
 
         {/* Middle Content */}
         <div className="flex-1 bg-gray-100 p-4 flex flex-col h-full justify-center items-center">
-          {!gameStart && (
+          {gameStart && (
             <div className="w-full h-full relative">
               <div className="absolute top-3 left-3 flex gap-2">
                 <Button
