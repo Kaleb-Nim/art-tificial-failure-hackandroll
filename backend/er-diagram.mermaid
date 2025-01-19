@@ -1,0 +1,94 @@
+erDiagram
+    rooms ||--o{ players : contains
+    rooms ||--o{ rounds : has
+    rooms ||--|| player_leaderboard : generates
+    players ||--o{ drawings : creates
+    players ||--o{ guesses : makes
+    rounds ||--o{ drawings : includes
+    drawings ||--o{ drawing_updates : streams
+    drawings ||--o{ guesses : receives
+    prompts ||--o{ rounds : provides
+
+    rooms {
+        uuid id PK
+        varchar code
+        varchar status
+        integer max_players
+        integer round_duration_seconds
+        uuid current_round_id
+        jsonb broadcast_state
+        timestamp created_at
+        timestamp updated_at
+        timestamp ended_at
+    }
+
+    players {
+        uuid id PK
+        uuid room_id FK
+        varchar nickname
+        boolean is_host
+        integer score
+        varchar presence_state
+        jsonb cursor_position
+        timestamp last_ping
+        timestamp connected_at
+        timestamp last_active_at
+    }
+
+    rounds {
+        uuid id PK
+        uuid room_id FK
+        integer round_number
+        text prompt
+        jsonb round_state
+        timestamp started_at
+        timestamp ended_at
+    }
+
+    drawings {
+        uuid id PK
+        uuid round_id FK
+        uuid player_id FK
+        jsonb drawing_data
+        varchar drawing_state
+        decimal ai_confidence
+        text ai_guess
+        timestamp created_at
+    }
+
+    drawing_updates {
+        uuid id PK
+        uuid drawing_id FK
+        jsonb stroke_data
+        integer sequence_number
+        timestamp created_at
+    }
+
+    guesses {
+        uuid id PK
+        uuid drawing_id FK
+        uuid player_id FK
+        text guess
+        boolean is_correct
+        boolean broadcast_state
+        timestamp created_at
+    }
+
+    prompts {
+        uuid id PK
+        text prompt
+        varchar difficulty
+        varchar category
+        integer times_used
+        boolean is_active
+        timestamp created_at
+    }
+
+    player_leaderboard {
+        uuid id PK
+        uuid room_id FK
+        varchar nickname
+        integer score
+        integer drawings_completed
+        integer correct_guesses
+    }
