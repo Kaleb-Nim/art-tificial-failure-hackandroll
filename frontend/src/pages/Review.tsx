@@ -40,6 +40,7 @@ const Review = () => {
   useEffect(() => {
     async function fetchData() {
       if (!round_id) return;
+      setTimeout(() => {}, 1000);
       // Fetch drawing
       const imageUrl = await getDrawingUrl(round_id);
       if (imageUrl) {
