@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Logo from "../assets/Logo.png";
 import { RoundType } from "@/types";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
 type AIPrediction = {
@@ -25,6 +25,23 @@ async function getDrawingUrl(roundId: string): Promise<string | null> {
 }
 
 const Review = () => {
+  const [searchParams] = useSearchParams();
+  const [reload, setReload] = useState(true);
+  useEffect(() => {
+    setReload(Boolean(searchParams.get("r")) || false);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!reload) {
+      // Add or update the search params
+      const searchParams = new URLSearchParams(window.location.search);
+      searchParams.set("r", "true"); // Add or modify a param
+      navigate(`${window.location.pathname}?${searchParams.toString()}`, {
+        replace: true,
+      });
+      window.location.reload();
+    }
+  }, [reload]);
   const navigate = useNavigate();
   const { round_id } = useParams();
   const [roundData, setRoundData] = useState<RoundType>();
@@ -40,7 +57,6 @@ const Review = () => {
   useEffect(() => {
     async function fetchData() {
       if (!round_id) return;
-      setTimeout(() => {}, 1000);
       // Fetch drawing
       const imageUrl = await getDrawingUrl(round_id);
       if (imageUrl) {
