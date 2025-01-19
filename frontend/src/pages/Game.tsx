@@ -281,6 +281,9 @@ const Game = () => {
         .on("broadcast", { event: "review" }, (payload) => {
           setCurrentRound(payload.payload["round_id"]);
           navigate(`/${payload.payload["round_id"]}/review`);
+        })
+        .on("broadcast", { event: "clearAll" }, () => {
+          canvasRef.current?.clearCanvas();
         });
 
       newChannel
@@ -833,8 +836,11 @@ const Game = () => {
                 </Button>
                 <Button
                   variant={"destructive"}
-                  onClick={() => {
-                    canvasRef.current?.clearCanvas();
+                  onClick={async () => {
+                    await channel?.send({
+                      type: "broadcast",
+                      event: "clearAll",
+                    });
                   }}
                   className="font-bold"
                 >
