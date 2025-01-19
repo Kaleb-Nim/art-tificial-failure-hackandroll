@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Logo from "../assets/Logo.png";
-import { UserRoomType } from "@/types";
-import { RoomType } from "@/types";
+import { RoundType, UserRoomType } from "@/types";
+import { useParams } from "react-router-dom";
 
 type AIPrediction = {
   guess: string;
@@ -26,34 +26,32 @@ import PlayerCard from "@/components/PlayerCard";
 import supabase from "@/lib/supabase";
 
 async function getDrawingUrl(roundId: string): Promise<string | null> {
-  const { data, error } = await supabase
-    .storage
-    .from('art')
+  const { data } = await supabase.storage
+    .from("art")
     .getPublicUrl(`round_${roundId}.png`);
 
-  if (error) {
-    console.error('Error fetching drawing:', error);
-    return null;
-  }
   console.log(data);
   return data.publicUrl;
 }
 
 const Review = () => {
+  const { round_id } = useParams();
   const [players, setPlayers] = useState<UserRoomType[]>([]);
-  const [roomData, setRoomData] = useState<RoomType>();
+  const [roundData, setRoundData] = useState<RoundType>();
+  const [topic, setTopic] = useState<string>("");
 
   const [canvasImage, setCanvasImage] = useState<string>("");
-  const [aiPrediction, setAiPrediction] = useState<AIPrediction>({ guess: "", confidence: 0 });
+  const [aiPrediction, setAiPrediction] = useState<AIPrediction>({
+    guess: "",
+    confidence: 0,
+  });
   const [playerGuesses, setPlayerGuesses] = useState<PlayerGuess[]>([]);
 
   useEffect(() => {
     async function fetchData() {
-      // Hard coded round_id for testing
-      const roundId = "135";
-      
+      if (!round_id) return;
       // Fetch drawing
-      const imageUrl = await getDrawingUrl(roundId);
+      const imageUrl = await getDrawingUrl(round_id);
       if (imageUrl) {
         setCanvasImage(imageUrl);
       }
@@ -62,40 +60,57 @@ const Review = () => {
       const { data: aiData, error: aiError } = await supabase
         .from("art_round_guesses")
         .select("guess, confidence")
-        .eq("round_id", roundId)
+        .eq("round_id", round_id)
         .eq("user_id", "1")
         .single();
 
       if (aiError) {
-        console.error('Error fetching AI prediction:', aiError);
+        console.error("Error fetching AI prediction:", aiError);
       } else if (aiData) {
         setAiPrediction({
           guess: aiData.guess,
-          confidence: aiData.confidence
+          confidence: aiData.confidence,
         });
       }
 
       // Fetch player guesses
       const { data: playerData, error: playerError } = await supabase
         .from("art_round_guesses")
-        .select("user_id, guess, created_at")
-        .eq("round_id", roundId)
+        .select("user_id, guess, created_at, art_users(*)")
+        .eq("round_id", round_id)
         .neq("user_id", "1"); // Exclude AI guesses
 
       if (playerError) {
-        console.error('Error fetching player guesses:', playerError);
+        console.error("Error fetching player guesses:", playerError);
       } else if (playerData) {
         setPlayerGuesses(playerData);
       }
     }
+    if (!round_id) return;
     fetchData();
-  }, []);
+    getRoundData(round_id);
+  }, [round_id]);
 
-  async function getRoomData(room_id: string) {
+  async function getTopic(topic_id: number) {
     const { data, error } = await supabase
-      .from("art_rooms")
+      .from("art_topics")
       .select()
-      .eq("room_id", room_id);
+      .eq("topic_id", topic_id);
+    if (error) {
+      console.log(error);
+      return [];
+    }
+    if (data.length == 0) {
+      return [];
+    }
+    return data;
+  }
+
+  async function getRoundData(round_id: string) {
+    const { data, error } = await supabase
+      .from("art_rounds")
+      .select()
+      .eq("id ", round_id);
     if (error) {
       console.log(error);
       return {};
@@ -103,87 +118,27 @@ const Review = () => {
     if (data.length == 0) {
       return {};
     }
+    console.log("ROUND", data[0]);
+    setRoundData(data[0]);
+    let topic = await getTopic(data[0]["topic_id"]);
+    setTopic(topic[0]["name"]);
     return data[0];
   }
 
   return (
-    // <div className="w-full flex justify-center mt-20 mb-6">
-    //   <div className="flex flex-col items-center w-4/5">
-    //     <img className="h-44 mb-6" src={Logo} alt="Logo" />
-    //     <Card className="p-6 w-full">
-    //       {/* Create a grid with 5 columns */}
-    //       <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] gap-4 items-start">
-    //         {/* First column */}
-    //         <div className="flex flex-col items-center gap-4">
-    //           <h1 className="font-bold text-2xl sticky top-0 bg-white py-2">
-    //             Final Drawing
-    //           </h1>
-    //           <img src={canvasImage} alt="Final Drawing" />
-    //         </div>
-
-    //         {/* First vertical separator */}
-    //         <Separator
-    //           orientation="vertical"
-    //           className="my-2 w-px bg-gray-300"
-    //         />
-
-    //         {/* Second column */}
-    //         <div className="flex flex-col items-center gap-4">
-    //           <h1 className="font-bold text-2xl text-center sticky top-0 bg-white py-2">
-    //             AI Prediction and Confidence
-    //           </h1>
-    //           <div className="flex flex-col items-start gap-2 w-full">
-    //             <div>
-    //               <p>AI Prediction:</p>
-    //               <p>Orange</p>
-    //             </div>
-    //             <div>
-    //               <p>AI Confidence:</p>
-    //               <p>0.85</p>
-    //             </div>
-    //           </div>
-    //         </div>
-
-    //         {/* Second vertical separator */}
-    //         <Separator
-    //           orientation="vertical"
-    //           className="my-2 w-px bg-gray-300"
-    //         />
-
-    //         {/* Third column */}
-    //         <div className="flex flex-col items-center gap-4">
-    //           <h1 className="font-bold text-2xl sticky top-0 bg-white py-2">
-    //             Player Predictions
-    //           </h1>
-    //           {/* Can for loop later */}
-    //           <PlayerCard
-    //             data={{
-    //               user_id: "",
-    //               name: "",
-    //               created_at: "",
-    //               character_img: "",
-    //             }}
-    //             isHost={false}
-    //             score={0}
-    //           />
-    //         </div>
-    //       </div>
-    //     </Card>
-    //   </div>
-    // </div>
-    <div className="w-full flex flex-col items-center mt-20 mb-6">
+    <div className="w-full flex flex-col items-center h-full justify-center">
       {/* Top logo */}
-      <img className="h-44 m-6" src={String(Logo)} alt="Logo" />
+      <img className="h-44 mb-6" src={String(Logo)} alt="Logo" />
 
       {/* Single card containing all three sections */}
       <Card className="w-4/5">
         <CardHeader>
           <CardTitle className="text-2xl flex justify-center">
-            Answer: Orange
+            Answer: {topic}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex w-full">
+          <div className="flex w-full items-center">
             {/* Left column */}
             <div className="w-1/3 p-4">
               <h2 className="text-lg font-semibold flex justify-center mb-2">
@@ -193,8 +148,13 @@ const Review = () => {
                 <p className="text-center text-lg font-semibold mb-4">
                   Players
                 </p>
-                <ul className="space-y-2">
+                <ul className="space-y-2 h-full overflow-auto">
                   {playerGuesses.map((guess) => (
+                    //   <PlayerCard
+                    //   data={guess}
+                    //   key={"Player " + guess.user_id}
+                    //   isHost={false}
+                    // />
                     <li key={guess.user_id} className="bg-blue-800 p-2 rounded">
                       <p className="font-semibold">Player {guess.user_id}</p>
                       <p>Guess: {guess.guess}</p>
@@ -219,12 +179,18 @@ const Review = () => {
             <Separator orientation="vertical" className="mx-4" />
 
             {/* Right column (slightly smaller) */}
-            <div className="w-1/4 p-4">
-              <h2 className="text-lg font-semibold mb-2">AI Predictions</h2>
+            <div className="w-1/4 p-4 h-full self-stretch flex flex-col gap-2">
+              <h2 className="text-lg font-semibold">AI Predictions</h2>
               <div>
                 <p className="font-semibold text-xl">{aiPrediction.guess}</p>
                 <p>Confidence Score: {aiPrediction.confidence.toFixed(2)}</p>
               </div>
+              <h1 className="font-bold text-xl mt-5">
+                <span>Verdict: </span>
+                <span className="text-red-500  text-3xl">
+                  {roundData && roundData["winner"]}
+                </span>
+              </h1>
             </div>
           </div>
         </CardContent>

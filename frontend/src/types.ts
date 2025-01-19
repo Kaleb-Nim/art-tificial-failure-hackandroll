@@ -28,5 +28,5 @@ export type RoundType = {
   topic_id: number;
   drawer_id: string;
   created_at: string;
-  winner_id: string;
+  winner: string;
 };

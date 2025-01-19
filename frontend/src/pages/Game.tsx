@@ -1,9 +1,8 @@
 import { useEffect, useState, useRef, ReactNode, FormEvent } from "react";
 import Guesses from "@/components/Guesses";
 import { Input } from "@/components/ui/input";
-import { useParams } from "react-router-dom";
 import PlayerCard from "@/components/PlayerCard";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import supabase from "@/lib/supabase";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
@@ -88,11 +87,12 @@ const Game = () => {
 
   const { seconds, restart } = useTimer({
     expiryTimestamp: getExpiryTimestamp(),
-    onExpire: () => {
+    onExpire: async () => {
       console.log("Timer expired");
       if (isDrawer) {
-        saveCanvasToSupabase(true);
+        await saveCanvasToSupabase(true);
       }
+      navigate(`/${currentRound}/review`);
     },
     autoStart: false,
   });
@@ -737,9 +737,7 @@ const Game = () => {
     <div className="flex flex-col h-full md:p-8 p-4">
       {/* Header */}
       <div className="h-16 bg-white text-black flex items-center justify-between px-6 md:mx-6 rounded-lg shadow">
-        <div className="text-lg font-semibold">
-          Round {roundCounter}/{players.length}
-        </div>
+        <div className="text-lg font-semibold">Round {roundCounter}/1</div>
         <div className="text-lg font-bold">
           {isDrawer
             ? topic
