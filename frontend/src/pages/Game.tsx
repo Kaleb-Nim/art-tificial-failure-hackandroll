@@ -74,12 +74,12 @@ const Game = () => {
     0.3: { img: robot5, text: "What can it be?" },
     0.5: { img: robot4, text: "Let me search it up!" },
     0.75: { img: robot3, text: "Hehe! I am close!" },
-    0.95: { img: robot2, text: "I KNOW IT!!!" },
+    1: { img: robot2, text: "I KNOW IT!!!" },
   };
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const duration = 60;
+  const duration = 45;
   const getExpiryTimestamp = () => {
     const time = new Date();
     time.setSeconds(time.getSeconds() + duration);
@@ -375,7 +375,37 @@ const Game = () => {
         <img src={selected["img"]} className="h-full mx-auto" />
       </div>
     );
+    if (prediction["similarity"] == 1) {
+      setGameState("AI WINS!");
+    }
   }, [prediction]);
+
+  async function getRounds() {
+    const { data, error } = await supabase
+      .from("art_rounds")
+      .select()
+      .eq("id", currentRound);
+    if (error) {
+      console.log(error);
+      return [];
+    }
+    return data;
+  }
+
+  async function setGameState(outcome: "AI WINS!" | "HUMANS WINS!") {
+    let data = await getRounds();
+    if (!data) return;
+    if (data[0]["winner"] == "DRAWER LOSES!") {
+      const { error } = await supabase
+        .from("art_rounds")
+        .update({ winner: outcome })
+        .eq("id", currentRound);
+      if (error) {
+        console.log(error);
+        return;
+      }
+    }
+  }
 
   useEffect(() => {
     async function runPrediction() {
@@ -807,13 +837,15 @@ const Game = () => {
                       .select("name")
                       .eq("user_id", userID)
                       .single();
-
+                    const time = new Date();
+                    time.setSeconds(time.getSeconds() + 5);
                     const { error } = await supabase
                       .from("art_round_guesses")
                       .upsert({
                         round_id: currentRound,
                         user_id: userID,
                         guess: guess.trim().toLowerCase(),
+                        created_at: time,
                       });
 
                     if (error) throw error;
@@ -828,6 +860,9 @@ const Game = () => {
                       },
                     });
 
+                    if (guess.trim().toLowerCase() == topic) {
+                      setGameState("HUMANS WINS!");
+                    }
                     toast.success("Guess submitted!", { duration: 500 });
                     setGuess("");
                   } catch (error) {

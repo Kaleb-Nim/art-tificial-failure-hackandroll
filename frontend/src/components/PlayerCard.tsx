@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface PlayerCardProps {
   data: {
@@ -15,7 +10,7 @@ interface PlayerCardProps {
   score: number;
 }
 
-const PlayerCard: React.FC<PlayerCardProps> = ({ data, isHost, score }) => {
+const PlayerCard: React.FC<PlayerCardProps> = ({ data, isHost }) => {
   return (
     <Card className="bg-white shadow-md rounded-lg">
       <CardHeader className="flex flex-row items-center gap-4 px-2 py-5">
@@ -42,9 +37,6 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ data, isHost, score }) => {
           <CardTitle className="text-teal-600 font-semibold text-lg">
             {(data && data.name) || ""}
           </CardTitle>
-          <CardDescription className="text-gray-600 text-sm">
-            {score} Points
-          </CardDescription>
         </div>
       </CardHeader>
     </Card>
