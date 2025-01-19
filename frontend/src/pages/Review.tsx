@@ -8,6 +8,12 @@ type AIPrediction = {
   confidence: number;
 };
 
+type PlayerGuess = {
+  user_id: string;
+  guess: string;
+  created_at: string;
+};
+
 import {
   Card,
   CardHeader,
@@ -39,6 +45,7 @@ const Review = () => {
 
   const [canvasImage, setCanvasImage] = useState<string>("");
   const [aiPrediction, setAiPrediction] = useState<AIPrediction>({ guess: "", confidence: 0 });
+  const [playerGuesses, setPlayerGuesses] = useState<PlayerGuess[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -52,20 +59,33 @@ const Review = () => {
       }
 
       // Fetch AI prediction
-      const { data, error } = await supabase
+      const { data: aiData, error: aiError } = await supabase
         .from("art_round_guesses")
         .select("guess, confidence")
         .eq("round_id", roundId)
         .eq("user_id", "1")
         .single();
 
-      if (error) {
-        console.error('Error fetching AI prediction:', error);
-      } else if (data) {
+      if (aiError) {
+        console.error('Error fetching AI prediction:', aiError);
+      } else if (aiData) {
         setAiPrediction({
-          guess: data.guess,
-          confidence: data.confidence
+          guess: aiData.guess,
+          confidence: aiData.confidence
         });
+      }
+
+      // Fetch player guesses
+      const { data: playerData, error: playerError } = await supabase
+        .from("art_round_guesses")
+        .select("user_id, guess, created_at")
+        .eq("round_id", roundId)
+        .neq("user_id", "1"); // Exclude AI guesses
+
+      if (playerError) {
+        console.error('Error fetching player guesses:', playerError);
+      } else if (playerData) {
+        setPlayerGuesses(playerData);
       }
     }
     fetchData();
@@ -174,19 +194,12 @@ const Review = () => {
                   Players
                 </p>
                 <ul className="space-y-2">
-                  {players.map((event) => {
-                    const isHost = roomData
-                      ? event.user_id === roomData["host_id"]
-                      : false;
-                    return (
-                      <PlayerCard
-                        data={event.art_users}
-                        key={event.user_id}
-                        isHost={isHost}
-                        score={event.score}
-                      />
-                    );
-                  })}
+                  {playerGuesses.map((guess) => (
+                    <li key={guess.user_id} className="bg-blue-800 p-2 rounded">
+                      <p className="font-semibold">Player {guess.user_id}</p>
+                      <p>Guess: {guess.guess}</p>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
