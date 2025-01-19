@@ -28,8 +28,10 @@ import robot3 from "@/assets/robot3.png";
 import robot4 from "@/assets/robot4.png";
 import robot5 from "@/assets/robot5.png";
 import robot6 from "@/assets/robot6.png";
+import { FaPencilAlt, FaEraser } from "react-icons/fa";
 
 const Game = () => {
+  const [drawMode, setDrawMode] = useState<boolean>(true);
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
   const channelRef = useRef<RealtimeChannel | undefined>(undefined);
   const updateChannelRef = () => {
@@ -100,6 +102,10 @@ const Game = () => {
     },
     autoStart: false,
   });
+
+  useEffect(() => {
+    canvasRef.current?.eraseMode(!drawMode);
+  }, [drawMode]);
 
   const handleRestart = () => {
     restart(getExpiryTimestamp()); // Restart with a new expiryTimestamp
@@ -240,6 +246,7 @@ const Game = () => {
             event: "INSERT",
             schema: "public",
             table: "art_draw_strokes",
+            filter: `round_id=eq.${currentRound}`,
           },
           (payload) => {
             console.log("Change received!", payload);
@@ -805,16 +812,41 @@ const Game = () => {
 
         {/* Middle Content */}
         <div className="flex-1 bg-gray-100 p-4 flex flex-col h-full justify-center items-center">
-          {gameStart && (
-            <ReactSketchCanvas
-              className={`w-full mx-auto h-full aspect-square ${
-                !isDrawer ? "pointer-events-none" : ""
-              }`}
-              canvasColor="white"
-              onStroke={(path, isEraser) => handleStrokeChange(path, isEraser)}
-              strokeColor="black"
-              ref={canvasRef}
-            />
+          {!gameStart && (
+            <div className="w-full h-full relative">
+              <div className="absolute top-3 left-3 flex gap-2">
+                <Button
+                  size={"icon"}
+                  onClick={() => setDrawMode((prev) => !prev)}
+                >
+                  {drawMode ? (
+                    <FaPencilAlt className="h-4 w-4" />
+                  ) : (
+                    <FaEraser className="h-4 w-4" />
+                  )}
+                </Button>
+                <Button
+                  variant={"destructive"}
+                  onClick={() => {
+                    canvasRef.current?.clearCanvas();
+                  }}
+                  className="font-bold"
+                >
+                  Clear All
+                </Button>
+              </div>
+              <ReactSketchCanvas
+                className={`w-full mx-auto h-full aspect-square ${
+                  !isDrawer ? "pointer-events-none" : ""
+                }`}
+                canvasColor="white"
+                onStroke={(path, isEraser) =>
+                  handleStrokeChange(path, isEraser)
+                }
+                strokeColor="black"
+                ref={canvasRef}
+              />
+            </div>
           )}
         </div>
 
