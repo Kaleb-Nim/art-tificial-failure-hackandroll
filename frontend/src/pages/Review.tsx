@@ -39,7 +39,7 @@ const Review = () => {
     guess: "",
     confidence: 0,
   });
-  const [playerGuesses, setPlayerGuesses] = useState<PlayerGuess[]>([]);
+  const [playerGuesses, setPlayerGuesses] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -79,8 +79,9 @@ const Review = () => {
       } else if (playerData) {
         const formattedPlayerData = playerData.map((guess) => ({
           ...guess,
-          art_users: guess.art_users[0], // Only take the first user
+          art_users: [guess.art_users][0], // Only take the first user
         }));
+        console.log(formattedPlayerData);
         setPlayerGuesses(formattedPlayerData);
       }
     }
@@ -147,14 +148,17 @@ const Review = () => {
                   Players
                 </p>
                 <ul className="space-y-2 h-full overflow-auto">
-                  {playerGuesses.map((guess) => (
-                    <PlayerCard
-                      data={guess.art_users}
-                      key={"Player " + guess.user_id}
-                      isHost={false}
-                      score={"Guess: " + guess.guess}
-                    />
-                  ))}
+                  {playerGuesses.map((guess) => {
+                    console.log(guess["art_users"]);
+                    return (
+                      <PlayerCard
+                        data={guess.art_users}
+                        key={"Player " + guess.user_id}
+                        isHost={false}
+                        score={"Guess: " + guess.guess}
+                      />
+                    );
+                  })}
                 </ul>
               </div>
             </div>
