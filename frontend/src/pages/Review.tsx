@@ -8,13 +8,6 @@ type AIPrediction = {
   confidence: number;
 };
 
-type PlayerGuess = {
-  user_id: string;
-  guess: string;
-  created_at: string;
-  art_users: UserType;
-};
-
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@radix-ui/react-separator";
 import PlayerCard from "@/components/PlayerCard";
