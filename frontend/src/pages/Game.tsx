@@ -450,7 +450,7 @@ const Game = () => {
       if (!isDrawer) {
         return;
       }
-      let prediction = await saveCanvasToSupabase();
+      let prediction = await saveCanvasToSupabase(true);
       console.log(prediction);
       await channel?.send({
         type: "broadcast",
@@ -746,6 +746,7 @@ const Game = () => {
       if (error) {
         throw error;
       }
+      return prediction;
 
       // toast.success("Drawing saved and analyzed successfully!");
     } catch (error) {
