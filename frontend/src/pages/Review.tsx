@@ -187,6 +187,7 @@ const Review = () => {
               </div>
               <h1 className="font-bold text-xl mt-5">
                 <span>Verdict: </span>
+                <br />
                 <span className="text-red-500  text-3xl">
                   {roundData && roundData["winner"]}
                 </span>

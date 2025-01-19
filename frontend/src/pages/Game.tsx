@@ -70,9 +70,9 @@ const Game = () => {
 
   const similarMap = {
     0: { img: robot6, text: "I DONT KNOW!!!" },
-    0.3: { img: robot5, text: "What can it be?" },
-    0.5: { img: robot4, text: "Let me search it up!" },
-    0.75: { img: robot3, text: "Hehe! I am close!" },
+    0.4: { img: robot5, text: "What can it be?" },
+    0.6: { img: robot4, text: "Let me search it up!" },
+    0.85: { img: robot3, text: "Hehe! I am close!" },
     1: { img: robot2, text: "I KNOW IT!!!" },
   };
 
@@ -92,7 +92,7 @@ const Game = () => {
       if (isDrawer) {
         await saveCanvasToSupabase(true);
       }
-      navigate(`/${currentRound}/review`);
+      channel?.send({ type: "broadcast", event: "review" });
     },
     autoStart: false,
   });
@@ -266,6 +266,9 @@ const Game = () => {
         })
         .on("broadcast", { event: "aiPredict" }, (payload) => {
           setPrediction(payload.payload["prediction"]);
+        })
+        .on("broadcast", { event: "review" }, () => {
+          navigate(`/${currentRound}/review`);
         });
 
       newChannel
@@ -362,9 +365,14 @@ const Game = () => {
 
   useEffect(() => {
     if (!prediction) return;
+    console.log("PREDICTION", prediction);
     let selected = { img: robot1, text: "Let me guess your drawings!" };
-    for (const key in similarMap) {
-      if (prediction["similarity"] <= parseFloat(key)) {
+    console.log(Object.keys(similarMap));
+    for (const key of Object.keys(similarMap).sort(
+      (a, b) => parseFloat(a) - parseFloat(b)
+    )) {
+      console.log(parseFloat(prediction["similarity"]), parseFloat(key));
+      if (parseFloat(prediction["similarity"]) <= parseFloat(key)) {
         selected = similarMap[parseFloat(key) as keyof typeof similarMap];
         break; // Stop at the first matching key (highest one)
       }
@@ -375,7 +383,7 @@ const Game = () => {
         <img src={selected["img"]} className="h-full mx-auto" />
       </div>
     );
-    if (prediction["similarity"] == 1) {
+    if (prediction["similarity"] == 1 || prediction["label"] == topic) {
       setGameState("AI WINS!");
     }
   }, [prediction]);
