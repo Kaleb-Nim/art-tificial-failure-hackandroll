@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Logo from "../assets/Logo.png";
-import { RoundType, UserType } from "@/types";
+import { RoundType } from "@/types";
 import { useParams } from "react-router-dom";
 
 type AIPrediction = {
