@@ -279,6 +279,7 @@ const Game = () => {
           setPrediction(payload.payload["prediction"]);
         })
         .on("broadcast", { event: "review" }, (payload) => {
+          setCurrentRound(payload.payload["round_id"]);
           navigate(`/${payload.payload["round_id"]}/review`);
         });
 
@@ -365,7 +366,7 @@ const Game = () => {
 
   async function handleAddRound(topic_id: number) {
     await addRound(roomData ? roomData["host_id"] : "", topic_id);
-    channel?.send({
+    await channel?.send({
       type: "broadcast",
       event: "closeDialog",
       payload: {
@@ -433,7 +434,7 @@ const Game = () => {
       }
       let prediction = await saveCanvasToSupabase();
       console.log(prediction);
-      channel?.send({
+      await channel?.send({
         type: "broadcast",
         event: "aiPredict",
         payload: { prediction: prediction },
@@ -515,7 +516,7 @@ const Game = () => {
     }
     setGameStart(true);
     await updateGameState(true);
-    channel?.send({
+    await channel?.send({
       type: "broadcast",
       event: "openDialog",
       payload: {
@@ -537,7 +538,7 @@ const Game = () => {
       console.log(error);
     }
     setCurrentRound((data as RoundType[])[0].id);
-    channel?.send({
+    await channel?.send({
       type: "broadcast",
       event: "updateRound",
       payload: {
@@ -896,7 +897,7 @@ const Game = () => {
 
                     if (error) throw error;
 
-                    channel?.send({
+                    await channel?.send({
                       type: "broadcast",
                       event: "addGuess",
                       payload: {
