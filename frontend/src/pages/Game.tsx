@@ -23,6 +23,12 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { IoSend } from "react-icons/io5";
 import { useTimer } from "react-timer-hook";
+import robot1 from "@/assets/robot1.png";
+import robot2 from "@/assets/robot2.png";
+import robot3 from "@/assets/robot3.png";
+import robot4 from "@/assets/robot4.png";
+import robot5 from "@/assets/robot5.png";
+import robot6 from "@/assets/robot6.png";
 
 const Game = () => {
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
@@ -53,6 +59,23 @@ const Game = () => {
     }>
   >([]);
   const [topic, setTopic] = useState<string>("");
+  const [prediction, setPrediction] = useState();
+  const [robotNode, setRobotNode] = useState(
+    <div className="flex flex-col items-center justify-center h-full w-full p-4">
+      <div className="text-xs font-mono h-fit chat">
+        Let me guess your drawings!
+      </div>
+      <img src={robot1} className="h-full mx-auto" />
+    </div>
+  );
+
+  const similarMap = {
+    0: { img: robot6, text: "I DONT KNOW!!!" },
+    0.3: { img: robot5, text: "What can it be?" },
+    0.5: { img: robot4, text: "Let me search it up!" },
+    0.75: { img: robot3, text: "Hehe! I am close!" },
+    0.95: { img: robot2, text: "I KNOW IT!!!" },
+  };
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -67,7 +90,9 @@ const Game = () => {
     expiryTimestamp: getExpiryTimestamp(),
     onExpire: () => {
       console.log("Timer expired");
-      saveCanvasToSupabase(true);
+      if (isDrawer) {
+        saveCanvasToSupabase(true);
+      }
     },
     autoStart: false,
   });
@@ -238,6 +263,9 @@ const Game = () => {
         })
         .on("broadcast", { event: "addGuess" }, (payload) => {
           setGuesses((prev) => [...prev, payload.payload]);
+        })
+        .on("broadcast", { event: "aiPredict" }, (payload) => {
+          setPrediction(payload.payload["prediction"]);
         });
 
       newChannel
@@ -333,8 +361,38 @@ const Game = () => {
   }
 
   useEffect(() => {
-    if (seconds <= 25) {
-      saveCanvasToSupabase(); // Call your function when there are 15 seconds left
+    if (!prediction) return;
+    let selected = { img: robot1, text: "Let me guess your drawings!" };
+    for (const key in similarMap) {
+      if (prediction["similarity"] <= parseFloat(key)) {
+        selected = similarMap[parseFloat(key) as keyof typeof similarMap];
+        break; // Stop at the first matching key (highest one)
+      }
+    }
+    setRobotNode(
+      <div className="flex flex-col items-center justify-center h-full w-full p-4">
+        <div className="text-xs font-mono h-fit chat">{selected["text"]}</div>
+        <img src={selected["img"]} className="h-full mx-auto" />
+      </div>
+    );
+  }, [prediction]);
+
+  useEffect(() => {
+    async function runPrediction() {
+      if (!isDrawer) {
+        return;
+      }
+      let prediction = await saveCanvasToSupabase();
+      console.log(prediction);
+      channel?.send({
+        type: "broadcast",
+        event: "aiPredict",
+        payload: { prediction: prediction },
+      });
+    }
+    let checkDuration = [10, 20, 30, 40, 50];
+    if (checkDuration.includes(seconds)) {
+      runPrediction(); // Call your function when there are 15 seconds left
     }
   }, [seconds]);
 
@@ -558,7 +616,7 @@ const Game = () => {
       const { error } = await supabase.from("art_round_guesses").upsert({
         round_id: currentRound,
         user_id: user_id,
-        guess: guess.trim(),
+        guess: guess.trim().toLowerCase(),
         confidence: confidence,
       });
       if (error) {
@@ -583,9 +641,31 @@ const Game = () => {
       let predict = await predictDrawing(imageData);
       console.log(predict);
       let prediction = predict["results"][0]["predictions"][0];
-      addGuessData("1", prediction["label"], prediction["confidence"]);
+      await addGuessData("1", prediction["label"], prediction["confidence"]);
+      try {
+        const response = await fetch(
+          "https://art-ificialfailure-backend.fly.dev/api/v1/compare",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              word1: topic,
+              word2: prediction["label"],
+            }),
+          }
+        );
+
+        const data = await response.json();
+        console.log("Prediction response:", data);
+        prediction["similarity"] = data["similarity"];
+      } catch (error) {
+        console.error("Error getting predictions:", error);
+        throw error;
+      }
       if (!is_final) {
-        return predict;
+        return prediction;
       }
       // Convert base64 to blob for storage
       const base64Response = await fetch(imageData);
@@ -701,6 +781,7 @@ const Game = () => {
 
         {/* Right Sidebar */}
         <div className="min-w-[200px] max-w-[20%] w-full bg-gray-50 border-l border-gray-300 p-4 md:flex flex-col flex gap-4">
+          <div className="h-44">{robotNode}</div>
           <div className="text-lg font-semibold text-gray-700">Chat</div>
           <div
             className="gap-2 max-h-[calc(100%-28px-36px-5px)] overflow-y-auto flex flex-col"
@@ -732,7 +813,7 @@ const Game = () => {
                       .upsert({
                         round_id: currentRound,
                         user_id: userID,
-                        guess: guess.trim(),
+                        guess: guess.trim().toLowerCase(),
                       });
 
                     if (error) throw error;
@@ -742,7 +823,7 @@ const Game = () => {
                       event: "addGuess",
                       payload: {
                         userName: userData?.name || "Unknown",
-                        guess: guess.trim(),
+                        guess: guess.trim().toLowerCase(),
                         userId: userID,
                       },
                     });

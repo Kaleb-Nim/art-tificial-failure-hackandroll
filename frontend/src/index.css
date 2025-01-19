@@ -40,3 +40,23 @@ body::before {
   background-image: url("./background.png");
   background-size: 200px;
 }
+
+.chat {
+  --bg-color: orange;
+  background: var(--bg-color);
+  padding: 10px;
+  position: relative;
+  border-radius: 10px;
+}
+.chat::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid var(--bg-color);
+}
