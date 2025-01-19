@@ -1,5 +1,10 @@
 import React from "react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface PlayerCardProps {
   data: {
@@ -7,10 +12,14 @@ interface PlayerCardProps {
     character_img: string;
   };
   isHost: boolean;
-  score: number;
+  score?: string;
 }
 
-const PlayerCard: React.FC<PlayerCardProps> = ({ data, isHost }) => {
+const PlayerCard: React.FC<PlayerCardProps> = ({
+  data,
+  isHost,
+  score = "",
+}) => {
   return (
     <Card className="bg-white shadow-md rounded-lg">
       <CardHeader className="flex flex-row items-center gap-4 px-2 py-5">
@@ -19,7 +28,14 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ data, isHost }) => {
           <div className="w-14 h-14 rounded-full overflow-hidden">
             <img
               className="w-full h-full object-cover"
-              src={(data && data.character_img) || ""}
+              src={
+                (data &&
+                  data.character_img.replace(
+                    ".",
+                    import.meta.env.VITE_CLIENT_URL
+                  )) ||
+                ""
+              }
               alt={`${(data && data.name) || ""}'s avatar`}
             />
           </div>
@@ -37,6 +53,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ data, isHost }) => {
           <CardTitle className="text-teal-600 font-semibold text-lg">
             {(data && data.name) || ""}
           </CardTitle>
+          <CardDescription>{score}</CardDescription>
         </div>
       </CardHeader>
     </Card>

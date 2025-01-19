@@ -92,7 +92,7 @@ const Game = () => {
       if (isDrawer) {
         await saveCanvasToSupabase(true);
       }
-      channel?.send({
+      await channel?.send({
         type: "broadcast",
         event: "review",
         payload: { round_id: currentRound },
@@ -272,7 +272,7 @@ const Game = () => {
           setPrediction(payload.payload["prediction"]);
         })
         .on("broadcast", { event: "review" }, (payload) => {
-          navigate(`/${payload.payload['round_id']}/review`);
+          navigate(`/${payload.payload["round_id"]}/review`);
         });
 
       newChannel
@@ -784,7 +784,6 @@ const Game = () => {
                     data={event.art_users}
                     key={"Player " + event.user_id}
                     isHost={playerHost}
-                    score={event.score}
                   />
                 );
               })}

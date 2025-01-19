@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Logo from "../assets/Logo.png";
-import { RoundType, UserRoomType } from "@/types";
+import { RoundType, UserRoomType, UserType } from "@/types";
 import { useParams } from "react-router-dom";
 
 type AIPrediction = {
@@ -12,15 +12,10 @@ type PlayerGuess = {
   user_id: string;
   guess: string;
   created_at: string;
+  art_users: UserType;
 };
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@radix-ui/react-separator";
 import PlayerCard from "@/components/PlayerCard";
 import supabase from "@/lib/supabase";
@@ -36,7 +31,6 @@ async function getDrawingUrl(roundId: string): Promise<string | null> {
 
 const Review = () => {
   const { round_id } = useParams();
-  const [players, setPlayers] = useState<UserRoomType[]>([]);
   const [roundData, setRoundData] = useState<RoundType>();
   const [topic, setTopic] = useState<string>("");
 
@@ -79,11 +73,15 @@ const Review = () => {
         .select("user_id, guess, created_at, art_users(*)")
         .eq("round_id", round_id)
         .neq("user_id", "1"); // Exclude AI guesses
-
+      console.log(playerData, "HIASD");
       if (playerError) {
         console.error("Error fetching player guesses:", playerError);
       } else if (playerData) {
-        setPlayerGuesses(playerData);
+        const formattedPlayerData = playerData.map((guess) => ({
+          ...guess,
+          art_users: guess.art_users[0], // Only take the first user
+        }));
+        setPlayerGuesses(formattedPlayerData);
       }
     }
     if (!round_id) return;
@@ -150,15 +148,12 @@ const Review = () => {
                 </p>
                 <ul className="space-y-2 h-full overflow-auto">
                   {playerGuesses.map((guess) => (
-                    //   <PlayerCard
-                    //   data={guess}
-                    //   key={"Player " + guess.user_id}
-                    //   isHost={false}
-                    // />
-                    <li key={guess.user_id} className="bg-blue-800 p-2 rounded">
-                      <p className="font-semibold">Player {guess.user_id}</p>
-                      <p>Guess: {guess.guess}</p>
-                    </li>
+                    <PlayerCard
+                      data={guess.art_users}
+                      key={"Player " + guess.user_id}
+                      isHost={false}
+                      score={"Guess: " + guess.guess}
+                    />
                   ))}
                 </ul>
               </div>
