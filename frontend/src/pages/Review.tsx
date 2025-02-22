@@ -149,16 +149,16 @@ const Review = () => {
       <img className="h-44 mb-6" src={String(Logo)} alt="Logo" />
 
       {/* Single card containing all three sections */}
-      <Card className="w-4/5">
+      <Card className="w-11/12 md:w-4/5">
         <CardHeader>
           <CardTitle className="text-2xl flex justify-center">
             Answer: {topic}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex w-full items-center">
+          <div className="flex flex-col md:flex-row w-full items-center gap-4">
             {/* Left column */}
-            <div className="w-1/3 p-4">
+            <div className="w-full md:w-1/3 p-4">
               <h2 className="text-lg font-semibold flex justify-center mb-2">
                 Human Guesses
               </h2>
@@ -183,10 +183,10 @@ const Review = () => {
             </div>
 
             {/* Vertical divider */}
-            <Separator orientation="vertical" className="mx-4 bg-gray-300" />
+            <Separator orientation="vertical" className="mx-4 bg-gray-300 hidden md:block" />
 
             {/* Middle column */}
-            <div className="w-1/3 p-4">
+            <div className="w-full md:w-1/3 p-4">
               <h2 className="text-lg font-semibold flex justify-center mb-2">
                 Final Drawing
               </h2>
@@ -194,10 +194,10 @@ const Review = () => {
             </div>
 
             {/* Vertical divider */}
-            <Separator orientation="vertical" className="mx-4" />
+            <Separator orientation="vertical" className="mx-4 hidden md:block" />
 
             {/* Right column (slightly smaller) */}
-            <div className="w-1/4 p-4 h-full self-stretch flex flex-col gap-2">
+            <div className="w-full md:w-1/4 p-4 h-full self-stretch flex flex-col gap-2">
               <h2 className="text-lg font-semibold text-center">
                 AI Predictions
               </h2>
