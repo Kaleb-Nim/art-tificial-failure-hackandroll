@@ -793,7 +793,7 @@ const Game = () => {
         <div
           className={cn(
             "min-w-[200px] max-w-[20%] w-full bg-blue-900 text-white p-4 flex-col gap-4",
-            !gameStart ? "flex" : "flex md:flex"
+            !gameStart ? "flex" : "hidden md:flex"
           )}
         >
           <div className="text-center text-lg font-semibold">Players</div>
