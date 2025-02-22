@@ -31,6 +31,7 @@ import robot6 from "@/assets/robot6.png";
 import { FaPencilAlt, FaEraser } from "react-icons/fa";
 
 const Game = () => {
+  const [showMobileChat, setShowMobileChat] = useState(false);
   const [drawMode, setDrawMode] = useState<boolean>(true);
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
   const channelRef = useRef<RealtimeChannel | undefined>(undefined);
@@ -788,12 +789,12 @@ const Game = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 bg-white mt-6 md:mx-6 rounded-lg shadow overflow-hidden">
+      <div className="flex flex-1 bg-white mt-6 md:mx-6 rounded-lg shadow overflow-hidden relative">
         {/* Left Sidebar */}
         <div
           className={cn(
-            "min-w-[200px] max-w-[20%] w-full bg-blue-900 text-white p-4 flex-col gap-4",
-            !gameStart ? "flex" : "hidden md:flex"
+            "min-w-[200px] md:max-w-[20%] w-full bg-blue-900 text-white p-4 flex-col gap-4",
+            !gameStart ? "flex absolute md:relative z-10 h-full" : "hidden md:flex"
           )}
         >
           <div className="text-center text-lg font-semibold">Players</div>
@@ -828,7 +829,102 @@ const Game = () => {
         </div>
 
         {/* Middle Content */}
-        <div className="flex-1 bg-gray-100 p-4 flex flex-col h-full justify-center items-center">
+        <div className="flex-1 bg-gray-100 p-4 flex flex-col h-full justify-center items-center relative">
+          {/* Mobile Chat Toggle */}
+          {gameStart && (
+            <button 
+              className="absolute top-3 right-3 md:hidden bg-blue-500 text-white p-2 rounded-full shadow-lg z-10"
+              onClick={() => setShowMobileChat(prev => !prev)}
+            >
+              💬
+            </button>
+          )}
+          
+          {/* Mobile Chat Overlay */}
+          {gameStart && showMobileChat && (
+            <div className="absolute inset-0 bg-gray-50 z-20 md:hidden flex flex-col p-4 gap-4">
+              <button 
+                className="self-end text-gray-600 text-xl"
+                onClick={() => setShowMobileChat(false)}
+              >
+                ✕
+              </button>
+              <div className="h-44">{robotNode}</div>
+              <div className="text-lg font-semibold text-gray-700">Chat</div>
+              <div
+                className="gap-2 flex-1 overflow-y-auto flex flex-col"
+                ref={scrollContainerRef}
+              >
+                {guesses.map((g, index) => (
+                  <Guesses
+                    key={index}
+                    userName={g.userName}
+                    guess={g.guess}
+                    isCurrentUser={g.userId === userID}
+                  />
+                ))}
+              </div>
+              {!isDrawer && (
+                <form
+                  onSubmit={async (e: FormEvent) => {
+                    e.preventDefault();
+                    if (guess.trim()) {
+                      try {
+                        const { data: userData } = await supabase
+                          .from("art_users")
+                          .select("name")
+                          .eq("user_id", userID)
+                          .single();
+                        const time = new Date();
+                        time.setSeconds(time.getSeconds() + 5);
+                        const { error } = await supabase
+                          .from("art_round_guesses")
+                          .upsert({
+                            round_id: currentRound,
+                            user_id: userID,
+                            guess: guess.trim().toLowerCase(),
+                            created_at: time,
+                          });
+
+                        if (error) throw error;
+
+                        await channel?.send({
+                          type: "broadcast",
+                          event: "addGuess",
+                          payload: {
+                            userName: userData?.name || "Unknown",
+                            guess: guess.trim().toLowerCase(),
+                            userId: userID,
+                          },
+                        });
+
+                        if (guess.trim().toLowerCase() == topic) {
+                          setGameState("HUMANS WINS!");
+                        }
+                        toast.success("Guess submitted!", { duration: 500 });
+                        setGuess("");
+                      } catch (error) {
+                        console.error("Error submitting guess:", error);
+                        toast.error("Failed to submit guess");
+                      }
+                    }
+                  }}
+                  className="flex gap-2 mt-auto"
+                >
+                  <Input
+                    type="text"
+                    placeholder="Enter your guess..."
+                    value={guess}
+                    onChange={(e) => setGuess(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button type="submit" size="icon">
+                    <IoSend />
+                  </Button>
+                </form>
+              )}
+            </div>
+          )}
           {gameStart && (
             <div className="w-full h-full relative">
               <div
@@ -876,7 +972,7 @@ const Game = () => {
         </div>
 
         {/* Right Sidebar */}
-        <div className="min-w-[200px] max-w-[20%] w-full bg-gray-50 border-l border-gray-300 p-4 md:flex flex-col flex gap-4">
+        <div className="min-w-[200px] md:max-w-[20%] w-full bg-gray-50 border-l border-gray-300 p-4 flex-col gap-4 hidden md:flex">
           <div className="h-44">{robotNode}</div>
           <div className="text-lg font-semibold text-gray-700">Chat</div>
           <div
